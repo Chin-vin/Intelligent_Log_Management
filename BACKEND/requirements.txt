@@ -9,3 +9,4 @@ bcrypt==3.2.0
 email-validator==2.3.0
 python-multipart==0.0.21
 supabase==2.27.1
+APScheduler==3.11.2

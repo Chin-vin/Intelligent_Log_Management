@@ -1,0 +1,7 @@
+.admin-create-user label {
+  font-size: 0.9rem;
+}
+
+.admin-create-user input[type="checkbox"] {
+  transform: scale(1.1);
+}

@@ -1,0 +1,199 @@
+.admin-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+/* Back link */
+.back-link {
+  font-size: 0.85rem;
+  color: #6c757d;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+/* Tighten Host vs Log Count columns */
+.admin-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.admin-table th:first-child,
+.admin-table td:first-child {
+  width: auto;
+}
+
+.admin-table th:last-child,
+.admin-table td:last-child {
+  width: 120px;      /* 👈 control spacing here */
+  text-align: right;
+}
+
+.back-link:hover {
+  color: #212529;
+  text-decoration: underline;
+}
+
+/* Logs card */
+.logs-card {
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+.admin-table td,
+.admin-table th {
+  padding: 8px 12px;   /* default is usually larger */
+}
+
+/* Table tweaks */
+.admin-table thead th {
+  font-weight: 600;
+  color: #495057;
+}
+
+.admin-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Pagination area */
+.admin-pagination {
+  border-top: 1px solid #eee;
+  padding-top: 10px;
+}
+
+/* Header spacing */
+.admin-page-header {
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e9ecef;
+}
+.admin-table thead {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+}
+.admin-table td:first-child {
+  font-family: monospace;
+  font-size: 0.85rem;
+}
+
+/* Subtle hover for back link */
+.admin-page-header a:hover {
+  color: #0d6efd !important;
+}
+
+/* Card polish */
+.logs-card {
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+/* Table header style */
+.admin-table thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6c757d;
+}
+
+/* Row hover */
+.admin-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Pagination separation */
+.admin-pagination {
+  border-top: 1px solid #e9ecef;
+  padding-top: 10px;
+}
+/* Bigger, card-like rows */
+.log-row {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: all 0.2s ease;
+}
+
+/* spacing between rows */
+.log-row:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+/* hover lift */
+.log-row:hover {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
+
+/* log count pill */
+.log-count-pill {
+  min-width: 36px;     /* ✅ smaller */
+  padding: 4px 10px;   /* tighter */
+  font-size: 0.8rem;
+}
+
+
+/* ---------- SIDEBAR ---------- */
+.admin-sidebar {
+  position: fixed;
+  top: 56px; /* height of Navbar */
+  left: 0;
+  height: calc(100vh - 56px);
+  background: #111;
+  color: #fff;
+  overflow-y: auto;
+  transition: width 0.2s ease, transform 0.2s ease;
+  z-index: 1000;
+}
+
+/* ICON ONLY */
+.admin-sidebar.icon-only span {
+  display: none;
+}
+
+/* ---------- MOBILE ---------- */
+.admin-sidebar.mobile {
+  transform: translateX(-100%);
+}
+
+.admin-sidebar.mobile.open {
+  transform: translateX(0);
+}
+
+/* OVERLAY */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 999;
+}
+
+/* ---------- CONTENT ---------- */
+.admin-content {
+  flex: 1;
+  padding: 1rem;
+  transition: margin-left 0.2s ease;
+}
+
+/* ---------- LINKS ---------- */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  color: #ccc;
+  text-decoration: none;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+  background: #222;
+  color: #fff;
+}
+
+/* ---------- RESIZE HANDLE ---------- */
+.resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  cursor: ew-resize;
+}

@@ -1,0 +1,21 @@
+/* Wrapper below navbar */
+.user-wrapper {
+  display: flex;
+  margin-top: 64px;                 /* navbar height */
+  min-height: calc(100vh - 64px);
+  background-color: #f4f6f9;
+}
+
+/* Sidebar */
+.user-sidebar {
+  width: 240px;
+  background: #ffffff;
+  border-right: 1px solid #dee2e6;
+}
+
+/* Content */
+.user-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}

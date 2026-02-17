@@ -33,7 +33,9 @@ app = FastAPI(title="Intelligent Log & File Management System")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173",
-        "https://intelligent-log-management.vercel.app"],   # restrict later
+        "https://intelligent-log-management.vercel.app",
+        "https://intelligent-log-management-2mg1hjcf9.vercel.app/",
+        "https://intelligent-log-management-git-main-chincholi-vinithas-projects.vercel.app/"],   # restrict later
     allow_methods=["*"],
     allow_headers=["*"],
 )

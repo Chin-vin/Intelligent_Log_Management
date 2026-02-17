@@ -87,7 +87,9 @@ class Archive(Base):
     file_id = Column(BigInteger)
 
     archived_on = Column(
-        DateTime(timezone=True),
-        default=datetime.utcnow
-    )
+    DateTime(timezone=True),
+    server_default=func.now(),
+    nullable=False
+)
+
     total_records = Column(BigInteger)

@@ -37,10 +37,12 @@ class LoginHistory(Base):
     login_id = Column(BigInteger, primary_key=True)
     user_id = Column(BigInteger)
 
-    login_time = Column(
-        DateTime(timezone=True),
-        server_default=func.now()
-    )
+   login_time = Column(
+    DateTime(timezone=True),
+    server_default=func.now(),
+    nullable=False
+)
+
     login_ip = Column(String)
     user_agent = Column(String)
 

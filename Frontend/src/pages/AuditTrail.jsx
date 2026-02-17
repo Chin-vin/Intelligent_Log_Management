@@ -3,6 +3,7 @@ import api from "../api/axios";
 
 export default function AuditTrailPage() {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -17,7 +18,25 @@ export default function AuditTrailPage() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   /* ---------------- LOAD AUDIT TRAIL ---------------- */
+  // const loadAuditTrail = async () => {
+  //   const res = await api.get("/admin/security/audit-trail", {
+  //     params: {
+  //       page,
+  //       page_size: pageSize,
+  //       action_type: filters.action_type || undefined,
+  //       entity_type: filters.entity_type || undefined,
+  //       days: filters.days || undefined,
+  //     },
+  //   });
+
+  //   setData(res.data.data || []);
+  //   setTotal(res.data.total || 0);
+  // };
+
   const loadAuditTrail = async () => {
+  try {
+    setLoading(true);
+
     const res = await api.get("/admin/security/audit-trail", {
       params: {
         page,
@@ -30,7 +49,12 @@ export default function AuditTrailPage() {
 
     setData(res.data.data || []);
     setTotal(res.data.total || 0);
-  };
+  } catch (error) {
+    console.error("Error loading audit trail:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     loadAuditTrail();
@@ -135,7 +159,7 @@ export default function AuditTrailPage() {
               </tr>
             </thead>
 
-            <tbody>
+            {/* <tbody>
               {data.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="text-center text-muted">
@@ -173,7 +197,51 @@ export default function AuditTrailPage() {
                   </tr>
                 ))
               )}
-            </tbody>
+            </tbody> */}
+            <tbody>
+  {loading ? (
+    <tr>
+      <td colSpan="6" className="text-center text-muted">
+        Loading audit records...
+      </td>
+    </tr>
+  ) : data.length === 0 ? (
+    <tr>
+      <td colSpan="6" className="text-center text-muted">
+        No audit records found
+      </td>
+    </tr>
+  ) : (
+    data.map((a, idx) => (
+      <tr key={a.audit_id}>
+        <td className="text-nowrap">
+          {(page - 1) * pageSize + idx + 1}
+        </td>
+
+        <td className="text-nowrap">
+          {new Date(a.action_time).toLocaleString()}
+        </td>
+
+        <td className="text-nowrap">{a.user || "—"}</td>
+
+        <td>
+          <span className="badge bg-primary">
+            {a.action_type}
+          </span>
+        </td>
+
+        <td className="text-nowrap">
+          {a.entity_type || "—"}
+        </td>
+
+        <td className="text-nowrap">
+          {a.entity_display || a.entity_id}
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
+
           </table>
         </div>
 

@@ -7,6 +7,8 @@ export default function LoginHistoryPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+
 
   const [statusFilter, setStatusFilter] = useState(""); // "", "success", "failure"
 
@@ -14,6 +16,9 @@ export default function LoginHistoryPage() {
 
   /* ---------------- LOAD LOGIN HISTORY ---------------- */
   const loadLoginHistory = async () => {
+  try {
+    setLoading(true);
+
     const res = await api.get("/admin/security/login-history", {
       params: {
         page,
@@ -27,7 +32,13 @@ export default function LoginHistoryPage() {
 
     setData(res.data.data || []);
     setTotal(res.data.total || 0);
-  };
+  } catch (error) {
+    console.error("Error loading login history:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     loadLoginHistory();
@@ -108,47 +119,54 @@ export default function LoginHistoryPage() {
             </thead>
 
             <tbody>
-              {data.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="text-muted text-center">
-                    No login history found
-                  </td>
-                </tr>
-              ) : (
-                data.map((l, idx) => (
-                  <tr key={l.login_id}>
-                    <td className="text-nowrap">
-                      {(page - 1) * pageSize + idx + 1}
-                    </td>
+  {loading ? (
+    <tr>
+      <td colSpan="6" className="text-center">
+        <div className="spinner-border text-primary" role="status" />
+      </td>
+    </tr>
+  ) : data.length === 0 ? (
+    <tr>
+      <td colSpan="6" className="text-muted text-center">
+        No login history found
+      </td>
+    </tr>
+  ) : (
+    data.map((l, idx) => (
+      <tr key={l.login_id}>
+        <td className="text-nowrap">
+          {(page - 1) * pageSize + idx + 1}
+        </td>
 
-                    <td className="text-nowrap">
-                      {new Date(l.login_time).toLocaleString()}
-                    </td>
+        <td className="text-nowrap">
+          {new Date(l.login_time).toLocaleString()}
+        </td>
 
-                    <td className="text-nowrap">{l.user || "—"}</td>
-                    <td className="text-nowrap">{l.login_ip || "—"}</td>
+        <td className="text-nowrap">{l.user || "—"}</td>
+        <td className="text-nowrap">{l.login_ip || "—"}</td>
 
-                    <td>
-                      <span
-                        className={`badge ${
-                          l.success ? "bg-success" : "bg-danger"
-                        }`}
-                      >
-                        {l.success ? "SUCCESS" : "FAILED"}
-                      </span>
-                    </td>
+        <td>
+          <span
+            className={`badge ${
+              l.success ? "bg-success" : "bg-danger"
+            }`}
+          >
+            {l.success ? "SUCCESS" : "FAILED"}
+          </span>
+        </td>
 
-                    <td
-                      className="text-truncate"
-                      style={{ maxWidth: 250 }}
-                      title={l.failure_reason}
-                    >
-                      {l.failure_reason || "—"}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
+        <td
+          className="text-truncate"
+          style={{ maxWidth: 250 }}
+          title={l.failure_reason}
+        >
+          {l.failure_reason || "—"}
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
+
           </table>
         </div>
 

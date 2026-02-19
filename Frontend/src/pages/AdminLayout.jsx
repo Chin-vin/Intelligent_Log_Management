@@ -83,11 +83,21 @@ export default function AdminLayout() {
   <i className="bi bi-folder2-open"></i>
   <span>Files</span>
 </NavLink>
+<NavLink
+  to="/admin/deletedFiles"
+  className="sidebar-link"
+  onClick={() => setMobileOpen(false)}
+>
+  <i className="bi bi-trash3"></i>
+  <span>Deleted & Archived</span>
+</NavLink>
+
 
           <NavLink
   to="/admin/security/logins"
   className="sidebar-link"
   onClick={() => setMobileOpen(false)}
+
 >
   <i className="bi bi-shield-lock"></i>
   <span>Security</span>

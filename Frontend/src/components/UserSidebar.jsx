@@ -59,6 +59,15 @@ export default function UserSidebar() {
         <i className="bi bi-folder2"></i>
         <span>Files</span>
       </NavLink>
+      <NavLink
+        to="/dashboard/recycle"
+        className={({ isActive }) =>
+          `sidebar-link ${isActive ? "active" : ""}`
+        }
+      >
+        <i className="bi bi-trash3"></i>
+        <span>Recycle Bin</span>
+      </NavLink>
     </div>
   );
 }

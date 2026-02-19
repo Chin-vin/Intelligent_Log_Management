@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from app.models.auth import LoginHistory
 from app.models.user import User
 from app.models.audit import AuditTrail
+from app.models.org import Role, UserRole
 
 from app.models.files import RawFile
 from app.models.team import Team
@@ -41,17 +42,22 @@ def audit_trail(
 
     # ---------------- BASE QUERY ----------------
     q = (
-        db.query(
-            AuditTrail.audit_id,
-            AuditTrail.action_time,
-            AuditTrail.action_type,
-            AuditTrail.entity_type,
-            AuditTrail.entity_id,
-            User.username,
-            User.email,
-        )
-        .outerjoin(User, User.user_id == AuditTrail.user_id)
+      db.query(
+        AuditTrail.audit_id,
+        AuditTrail.action_time,
+        AuditTrail.action_type,
+        AuditTrail.entity_type,
+        AuditTrail.entity_id,
+        User.user_id,
+        User.username,
+        User.email,
+        Role.role_name.label("role_name"),
     )
+    .outerjoin(User, User.user_id == AuditTrail.user_id)
+    .outerjoin(UserRole, UserRole.user_id == User.user_id)
+    .outerjoin(Role, Role.role_id == UserRole.role_id)
+)
+
 
     if action_type:
         q = q.filter(AuditTrail.action_type.ilike(f"%{action_type}%"))
@@ -118,22 +124,24 @@ def audit_trail(
 
     # ---------------- RESPONSE ----------------
     return {
-        "data": [
-            {
-                "audit_id": r.audit_id,
-                "action_time": r.action_time,
-                "action_type": r.action_type,
-                "entity_type": r.entity_type,
-                "entity_id": r.entity_id,              # raw ID (kept)
-                "entity_display": resolve_entity(r),   # ✅ filename / username
-                "user": r.username or r.email,
-            }
-            for r in rows
-        ],
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-    }
+    "data": [
+        {
+            "audit_id": r.audit_id,
+            "action_time": r.action_time,
+            "action_type": r.action_type,
+            "entity_type": r.entity_type,
+            "entity_id": r.entity_id,
+            "entity_display": resolve_entity(r),
+            "user": r.username or r.email,
+            "role": r.role_name or "N/A",   # ✅ NEW
+        }
+        for r in rows
+    ],
+    "total": total,
+    "page": page,
+    "page_size": page_size,
+}
+
 
 
 @router.get("/login-history")

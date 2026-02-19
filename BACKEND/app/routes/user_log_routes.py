@@ -8,11 +8,54 @@ from app.core.dependencies import get_current_user
 from app.models.logs import LogEntry
 from app.models.files import RawFile
 from app.models.user_team import UserTeam
-
+from app.models.lookup import LogSeverity
+from datetime import timezone
 router = APIRouter(
     prefix="/user/logs",
     tags=["User Logs"]
 )
+
+# @router.get("/summary")
+# def logs_summary(
+#     days: int = Query(7, ge=1, le=30),
+#     db: Session = Depends(get_db),
+#     current_user = Depends(get_current_user),
+# ):
+#     start_date = datetime.utcnow() - timedelta(days=days)
+
+#     rows = (
+#         db.query(
+#             func.date(LogEntry.log_timestamp).label("day"),
+#             func.count().label("total_logs"),
+#             func.sum(
+#                 case(
+#                     (LogEntry.severity_id >= 4, 1),
+#                     else_=0
+#                 )
+#             ).label("error_logs"),
+#         )
+#         .join(RawFile, LogEntry.file_id == RawFile.file_id)
+#         .filter(RawFile.uploaded_by == current_user.user_id)
+#         .filter(LogEntry.log_timestamp >= start_date)
+#         .group_by(func.date(LogEntry.log_timestamp))
+#         .order_by(func.date(LogEntry.log_timestamp))
+#         .all()
+#     )
+
+#     result = []
+#     for r in rows:
+#         error_percent = (
+#             round((r.error_logs / r.total_logs) * 100, 2)
+#             if r.total_logs else 0
+#         )
+#         result.append({
+#             "day": r.day.strftime("%d-%m-%Y"),
+#             "total_logs": r.total_logs,
+#             "error_logs": r.error_logs,
+#             "error_percent": error_percent,
+#         })
+
+#     return result
 
 @router.get("/summary")
 def logs_summary(
@@ -20,7 +63,9 @@ def logs_summary(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user),
 ):
-    start_date = datetime.utcnow() - timedelta(days=days)
+    
+
+    start_date = datetime.now(timezone.utc) - timedelta(days=days)
 
     rows = (
         db.query(
@@ -28,12 +73,13 @@ def logs_summary(
             func.count().label("total_logs"),
             func.sum(
                 case(
-                    (LogEntry.severity_id >= 40, 1),
+                    (LogSeverity.severity_code.in_(["ERROR", "FATAL"]), 1),
                     else_=0
                 )
             ).label("error_logs"),
         )
         .join(RawFile, LogEntry.file_id == RawFile.file_id)
+        .join(LogSeverity, LogSeverity.severity_id == LogEntry.severity_id)
         .filter(RawFile.uploaded_by == current_user.user_id)
         .filter(LogEntry.log_timestamp >= start_date)
         .group_by(func.date(LogEntry.log_timestamp))
@@ -42,11 +88,13 @@ def logs_summary(
     )
 
     result = []
+
     for r in rows:
         error_percent = (
             round((r.error_logs / r.total_logs) * 100, 2)
             if r.total_logs else 0
         )
+
         result.append({
             "day": r.day.strftime("%d-%m-%Y"),
             "total_logs": r.total_logs,
@@ -55,7 +103,6 @@ def logs_summary(
         })
 
     return result
-
 
 @router.get("/search")
 def search_my_logs(

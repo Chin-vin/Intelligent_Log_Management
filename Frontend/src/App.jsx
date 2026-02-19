@@ -26,7 +26,8 @@ import AdminFiles from "./pages/admin/AdminFiles";
 import AuditTrailPage from "./pages/AuditTrail";
 import LoginHistoryPage from "./pages/LoginHistory";
 import FilePreview from "./pages/FilePreview";
-
+import DeletedArchivedFiles from "./pages/DeletedArchived";
+import UserDeletedArchived from "./pages/UserDeletedArchived";
 
 function App() {
   return (
@@ -49,6 +50,8 @@ function App() {
     <Route index element={<Dashboard />} />
     <Route path="logs" element={<UserLogSearch />} />
     <Route path="files" element={<UserFiles />} />
+    <Route path="recycle" element={<UserDeletedArchived />} />
+
     {/* <Route path="profile" element={<EditProfile />} /> */}
   </Route>
 
@@ -85,7 +88,7 @@ function App() {
     <Route path="users" element={<AdminUsers />} />
     <Route path="create-user" element={<CreateUser />} />
     <Route path="files" element={<AdminFiles />} />
-
+    
     {/* LOGS */}
     <Route path="logs" element={<AdminLogSearch />} />
     <Route path="logs-per-day" element={<LogsPerDayPage />} />
@@ -96,6 +99,8 @@ function App() {
     {/* SECURITY */}
     <Route path="security/logins" element={<LoginHistoryPage />} />
     <Route path="security/audit-trail" element={<AuditTrailPage />} />
+    <Route path="deletedFiles" element={<DeletedArchivedFiles />} />
+
   </Route>
 </Routes>
 

@@ -57,7 +57,8 @@ app.include_router(admin_security_router)
 app.include_router(admin_file_router)
 
 
-
+from datetime import datetime, timedelta
 @app.on_event("startup")
 def startup_event():
+    print("🚀 App Started")
     start_scheduler()

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.responses import StreamingResponse
 import io
@@ -8,7 +8,6 @@ from app.models.files import RawFile
 from app.models.lookup import UploadStatus
 
 
-from fastapi import APIRouter, Depends, Query, HTTPException
 
 from datetime import datetime, timezone
 
@@ -91,22 +90,24 @@ def get_all_uploaded_files(
         .join(User, User.user_id == RawFile.uploaded_by)
         .join(Team, Team.team_id == RawFile.team_id)
         .join(UploadStatus, UploadStatus.status_id == RawFile.status_id)
+        .filter(RawFile.is_deleted == False,
+        UploadStatus.status_code.in_(["PARSED", "FAILED"]))
     )
 
-    # 🔎 FILTER: file type
+    # FILTER: file type
     if file_type:
         query = query.filter(RawFile.original_name.ilike(f"%.{file_type}"))
 
-    # 🔎 FILTER: team
+    #  FILTER: team
     if team_id:
         query = query.filter(RawFile.team_id == team_id)
 
-    # 🔎 FILTER: file name (partial match)
+    #  FILTER: file name (partial match)
     if file_name:
         query = query.filter(
             RawFile.original_name.ilike(f"%{file_name}%")
         )
-        # 🔎 FILTER: status
+        # FILTER: status
     if status:
         query = query.filter(UploadStatus.status_code == status)
 

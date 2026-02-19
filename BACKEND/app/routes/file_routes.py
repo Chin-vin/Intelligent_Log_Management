@@ -32,7 +32,7 @@ from app.services.storage_service import delete_storage_file
 from app.models.logs import LogEntry
 from app.models.files import RawFile
 from app.models.audit import AuditTrail
-
+from app.models.audit import Archive
 
 
 import hashlib
@@ -266,9 +266,11 @@ def get_status_id_by_code(db: Session, code: str) -> int:
         )
     return status.status_id
 
+
+
+
 # @router.post("/upload", status_code=201)
 # async def upload_file(
-#     background_tasks: BackgroundTasks,
 #     files: List[UploadFile] = File(...),
 #     team_id: int = Form(...),
 #     source_id: int = Form(...),
@@ -277,21 +279,20 @@ def get_status_id_by_code(db: Session, code: str) -> int:
 # ):
 #     uploaded_files = []
 #     duplicate_files = []
-#     request_file_names = set()  # To detect duplicates in same request
+#     seen_names = set()
 
 #     for file in files:
 #         file_name = file.filename.strip()
+#         lower_name = file_name.lower()
 
-#         # 1️⃣ Detect duplicate inside same upload request
-#         if file_name.lower() in request_file_names:
+#         if lower_name in seen_names:
 #             duplicate_files.append(file_name)
 #             continue
 
-#         request_file_names.add(file_name.lower())
+#         seen_names.add(lower_name)
 
-#         # 2️⃣ Detect duplicate already in DB (case-insensitive)
 #         existing = db.query(RawFile).filter(
-#             RawFile.original_name.ilike(file_name),
+#             func.lower(RawFile.original_name) == lower_name,
 #             RawFile.team_id == team_id,
 #             RawFile.source_id == source_id
 #         ).first()
@@ -300,7 +301,7 @@ def get_status_id_by_code(db: Session, code: str) -> int:
 #             duplicate_files.append(file_name)
 #             continue
 
-#         # 3️⃣ Save new file
+#         # Save file
 #         raw_file = await upload_file_service(
 #             db=db,
 #             current_user=current_user,
@@ -309,15 +310,16 @@ def get_status_id_by_code(db: Session, code: str) -> int:
 #             source_id=source_id,
 #         )
 
-#         background_tasks.add_task(
-#             parse_file,
-#             db=db,
-#             file_id=raw_file.file_id
-#         )
+#         # 🔥 Parse immediately and return stats
+#         stats = parse_file(raw_file.file_id)
 
 #         uploaded_files.append({
 #             "file_id": raw_file.file_id,
-#             "file_name": file_name
+#             "file_name": file_name,
+#             "total_records": stats["total_records"],
+#             "parsed_records": stats["parsed_records"],
+#             "skipped_records": stats["skipped_records"]
+
 #         })
 
 #     return {
@@ -328,15 +330,13 @@ def get_status_id_by_code(db: Session, code: str) -> int:
 #         "message": "Upload completed"
 #     }
 
-
 @router.post("/upload", status_code=201)
 async def upload_file(
-    background_tasks: BackgroundTasks,
     files: List[UploadFile] = File(...),
     team_id: int = Form(...),
     source_id: int = Form(...),
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
     uploaded_files = []
     duplicate_files = []
@@ -354,11 +354,15 @@ async def upload_file(
         seen_names.add(lower_name)
 
         # 2️⃣ Duplicate in DB (case-insensitive exact match)
-        existing = db.query(RawFile).filter(
-            func.lower(RawFile.original_name) == lower_name,
-            RawFile.team_id == team_id,
-            RawFile.source_id == source_id
-        ).first()
+        existing = (
+            db.query(RawFile)
+            .filter(
+                func.lower(RawFile.original_name) == lower_name,
+                RawFile.team_id == team_id,
+                RawFile.source_id == source_id,
+            )
+            .first()
+        )
 
         if existing:
             duplicate_files.append(file_name)
@@ -373,22 +377,25 @@ async def upload_file(
             source_id=source_id,
         )
 
-        background_tasks.add_task(
-            parse_file,
-            raw_file.file_id
-        )
+        # 🔥 Parse immediately and return stats
+        stats = parse_file(raw_file.file_id)
 
-        uploaded_files.append({
-            "file_id": raw_file.file_id,
-            "file_name": file_name
-        })
+        uploaded_files.append(
+            {
+                "file_id": raw_file.file_id,
+                "file_name": file_name,
+                "total_records": stats["total_records"],
+                "parsed_records": stats["parsed_records"],
+                "skipped_records": stats["skipped_records"],
+            }
+        )
 
     return {
         "uploaded_files": uploaded_files,
         "duplicate_files": duplicate_files,
         "total_uploaded": len(uploaded_files),
         "total_duplicates": len(duplicate_files),
-        "message": "Upload completed"
+        "message": "Upload completed",
     }
 
 @router.get("/{file_id}/preview")
@@ -436,7 +443,9 @@ def get_my_uploaded_files(
         )
         .join(FileFormat, FileFormat.format_id == RawFile.format_id)
         .join(UploadStatus, UploadStatus.status_id == RawFile.status_id)
-        .filter(RawFile.uploaded_by == current_user.user_id)
+        .filter(RawFile.uploaded_by == current_user.user_id,
+        RawFile.is_deleted == False ,
+        UploadStatus.status_code.in_(["PARSED", "FAILED"]))
         .order_by(desc(RawFile.uploaded_at))
         .all()
     )
@@ -475,6 +484,8 @@ def my_and_team_files(
         )
         .join(UploadStatus, UploadStatus.status_id == RawFile.status_id)
         .filter(
+            UploadStatus.status_code.in_(["PARSED", "FAILED"]),  
+            RawFile.is_deleted == False,
             or_(
                 RawFile.uploaded_by == current_user.user_id,
                 RawFile.team_id.in_(team_ids)
@@ -491,6 +502,112 @@ def my_and_team_files(
             "file_size_bytes": f.file_size_bytes,
             "uploaded_at": f.uploaded_at,
             "status": f.status_code   # ✅ IMPORTANT
+        }
+        for f in files
+    ]
+
+
+# @router.get("/deleted-archived")
+# def get_deleted_archived_files(
+#     db: Session = Depends(get_db),
+#     current_user = Depends(get_current_user)
+# ):
+#     files = (
+#         db.query(
+#             RawFile.file_id,
+#             RawFile.original_name,
+#             RawFile.uploaded_at,
+#             UploadStatus.status_code
+#         )
+#         .join(UploadStatus, UploadStatus.status_id == RawFile.status_id)
+#         .filter(
+#             RawFile.uploaded_by == current_user.user_id,
+#             Role.role_name == "ADMIN",
+#             UploadStatus.status_code.in_(["SOFT_DELETED", "ARCHIVED"])
+#         )
+#         .order_by(RawFile.uploaded_at.desc())
+#         .all()
+#     )
+#     for f in files:
+#         print(f.original_name)
+#     return [
+#         {
+#             "file_id": f.file_id,
+#             "original_name": f.original_name,
+#             "uploaded_at": f.uploaded_at,
+#             "status": f.status_code
+#         }
+#         for f in files
+#     ]
+@router.get("/deleted-archived")
+def get_deleted_archived_files(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    admin = is_admin(db, current_user.user_id)
+
+    query = (
+        db.query(
+            RawFile.file_id,
+            RawFile.original_name,
+            RawFile.uploaded_at,
+            UploadStatus.status_code
+        )
+        .join(UploadStatus, UploadStatus.status_id == RawFile.status_id)
+        .filter(
+            UploadStatus.status_code.in_(["SOFT_DELETED", "ARCHIVED"])
+        )
+    )
+
+    # 🔐 If NOT admin → restrict to own files
+    if not admin:
+        query = query.filter(
+            RawFile.uploaded_by == current_user.user_id
+        )
+
+    files = query.order_by(desc(RawFile.uploaded_at)).all()
+
+    return [
+        {
+            "file_id": f.file_id,
+            "original_name": f.original_name,
+            "uploaded_at": f.uploaded_at,
+            "status": f.status_code
+        }
+        for f in files
+    ]
+
+
+@router.get("/my-deleted-archived")
+def get_my_deleted_archived_files(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    files = (
+        db.query(
+            RawFile.file_id,
+            RawFile.original_name,
+            RawFile.file_size_bytes,
+            RawFile.uploaded_at,
+            UploadStatus.status_code
+        )
+        .join(UploadStatus, UploadStatus.status_id == RawFile.status_id)
+        .filter(
+            RawFile.uploaded_by == current_user.user_id,
+            UploadStatus.status_code.in_(["SOFT_DELETED", "ARCHIVED"])
+        )
+        .order_by(desc(RawFile.uploaded_at))
+        .all()
+    )
+    for f in files:
+        print(f.original_name)
+    return [
+        {
+            "file_id": f.file_id,
+            "original_name": f.original_name,
+            "file_size_bytes": f.file_size_bytes,
+            "uploaded_at": f.uploaded_at,
+            "status": f.status_code
         }
         for f in files
     ]

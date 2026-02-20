@@ -31,6 +31,8 @@ async def upload_file_service(
     db: Session,
     current_user,
     file,
+    content: bytes,
+    checksum: str,
     team_id: int,
     source_id: int,
     # category_id: int
@@ -74,30 +76,30 @@ async def upload_file_service(
     # -------------------------------------------------
     # 3️⃣ Enforce team_upload_policies ✅
     # -------------------------------------------------
-    policy = db.query(TeamUploadPolicy).filter(
-        TeamUploadPolicy.team_id == team_id,
-        # TeamUploadPolicy.category_id == category_id,
-        TeamUploadPolicy.format_id == format_row.format_id,
-        TeamUploadPolicy.is_allowed == True
-    ).first()
+    # policy = db.query(TeamUploadPolicy).filter(
+    #     TeamUploadPolicy.team_id == team_id,
+    #     # TeamUploadPolicy.category_id == category_id,
+    #     TeamUploadPolicy.format_id == format_row.format_id,
+    #     TeamUploadPolicy.is_allowed == True
+    # ).first()
 
-    if not policy:
-        raise HTTPException(
-            status_code=403,
-            detail="Upload not allowed for this team, and file type"
-        )
+    # if not policy:
+    #     raise HTTPException(
+    #         status_code=403,
+    #         detail="Upload not allowed for this team, and file type"
+    #     )
 
     # -------------------------------------------------
     # 4️⃣ Read file & checksum (deduplication)
     # -------------------------------------------------
-    content = await file.read()
-    checksum = hashlib.sha256(content).hexdigest()
+    # content = await file.read()
+    # checksum = hashlib.sha256(content).hexdigest()
 
-    if db.query(RawFile).filter(RawFile.checksum == checksum).first():
-        raise HTTPException(
-            status_code=409,
-            detail="Duplicate file upload detected"
-        )
+    # if db.query(RawFile).filter(RawFile.checksum == checksum).first():
+    #     raise HTTPException(
+    #         status_code=409,
+    #         detail="Duplicate file upload detected"
+    #     )
 
     # -------------------------------------------------
     # 5️⃣ Flat storage path (no deep nesting ✅)

@@ -14,14 +14,14 @@ def dashboard_overview(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user),
 ):
-    # 1️⃣ Total files uploaded by user
+    # Total files uploaded by user
     total_files = (
         db.query(func.count(RawFile.file_id))
         .filter(RawFile.uploaded_by == current_user.user_id)
         .scalar()
     )
 
-    # 2️⃣ Total logs generated from user's files
+    # Total logs generated from user's files
     total_logs = (
         db.query(func.count(LogEntry.log_id))
         .join(RawFile, RawFile.file_id == LogEntry.file_id)
@@ -29,7 +29,7 @@ def dashboard_overview(
         .scalar()
     )
 
-    # 3️⃣ Error + Fatal logs
+    #  Error + Fatal logs
     error_logs = (
         db.query(func.count(LogEntry.log_id))
         .join(RawFile, RawFile.file_id == LogEntry.file_id)
@@ -41,7 +41,7 @@ def dashboard_overview(
         .scalar()
     )
 
-    # 4️⃣ Last upload timestamp
+    #  Last upload timestamp
     last_upload_at = (
         db.query(func.max(RawFile.uploaded_at))
         .filter(RawFile.uploaded_by == current_user.user_id)

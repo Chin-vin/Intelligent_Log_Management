@@ -91,7 +91,14 @@ export default function AdminLayout() {
   <i className="bi bi-trash3"></i>
   <span>Deleted & Archived</span>
 </NavLink>
-
+<NavLink
+  to="/admin/manage-teams"
+  className="sidebar-link"
+  onClick={() => setMobileOpen(false)}
+>
+  <i className="bi bi-diagram-3"></i>
+  <span>Teams</span>
+</NavLink>
 
           <NavLink
   to="/admin/security/logins"

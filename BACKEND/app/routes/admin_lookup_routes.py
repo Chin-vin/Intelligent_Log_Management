@@ -57,23 +57,24 @@ def get_roles(
         for r in roles
     ]
 
-@router.get("/teams")
-def get_teams(
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
-):
-    require_admin(db, current_user.user_id)
+# @router.get("/teams")
+# def get_teams(
+#     db: Session = Depends(get_db),
+#     current_user = Depends(get_current_user)
+# ):
+#     require_admin(db, current_user)
 
-    teams = (
-        db.query(Team.team_id, Team.team_name)
-        .order_by(Team.team_name)
-        .all()
-    )
+#     teams = (
+#         db.query(Team.team_id, Team.team_name)
+#         .order_by(Team.team_name)
+#         .all()
+#     )
 
-    return [
-        {
-            "team_id": t.team_id,
-            "team_name": t.team_name
-        }
-        for t in teams
-    ]
+#     return [
+#         {
+#             "team_id": t.team_id,
+#             "team_name": t.team_name,
+#             "created_at":t.created_at
+#         }
+#         for t in teams
+#     ]

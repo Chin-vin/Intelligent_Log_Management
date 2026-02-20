@@ -367,12 +367,27 @@ async def upload_file(
         if existing:
             duplicate_files.append(file_name)
             continue
+        # 🔹 Read file content once
+        content = await file.read()
 
+        # 🔹 Compute checksum
+        checksum = hashlib.sha256(content).hexdigest()
+
+        # GLOBAL duplicate detection (across ALL files)
+        existing = db.query(RawFile).filter(
+            RawFile.checksum == checksum
+            ).first()
+
+        if existing:
+            duplicate_files.append(file_name)
+            continue
         # 3️⃣ Save file
         raw_file = await upload_file_service(
             db=db,
             current_user=current_user,
             file=file,
+            content=content,
+            checksum=checksum,
             team_id=team_id,
             source_id=source_id,
         )

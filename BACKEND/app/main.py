@@ -20,7 +20,7 @@ from app.routes.user_log_routes import router as user_log_router
 from app.routes.admin_security_routes import router as admin_security_router
 from app.routes.admin_file_routes import router as admin_file_router
 from app.background.scheduler import start_scheduler
-
+from app.routes.admin_team import router as admin_teams_router
 
 
 
@@ -33,6 +33,7 @@ app = FastAPI(title="Intelligent Log & File Management System")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173",
+        "http://192.168.2.194:5173",
         "https://intelligent-log-management.vercel.app",
         "https://intelligent-log-management-2mg1hjcf9.vercel.app/",
         "https://intelligent-log-management-git-main-chincholi-vinithas-projects.vercel.app/"],   # restrict later
@@ -55,7 +56,7 @@ app.include_router(admin_user_router)
 app.include_router(admin_log_router)
 app.include_router(admin_security_router)
 app.include_router(admin_file_router)
-
+app.include_router(admin_teams_router)
 
 from datetime import datetime, timedelta
 @app.on_event("startup")

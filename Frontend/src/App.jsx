@@ -28,6 +28,7 @@ import LoginHistoryPage from "./pages/LoginHistory";
 import FilePreview from "./pages/FilePreview";
 import DeletedArchivedFiles from "./pages/DeletedArchived";
 import UserDeletedArchived from "./pages/UserDeletedArchived";
+import AdminTeams from "./pages/AdminTeams";
 
 function App() {
   return (
@@ -95,9 +96,10 @@ function App() {
     <Route path="logs-errors" element={<TopErrorsPage />} />
     <Route path="logs-systems" element={<ActiveSystemsPage />} />
     <Route path="logs-severity" element={<SeverityDistributionPage />} />
-
+    
     {/* SECURITY */}
     <Route path="security/logins" element={<LoginHistoryPage />} />
+    <Route path="manage-teams" element={<AdminTeams />} />
     <Route path="security/audit-trail" element={<AuditTrailPage />} />
     <Route path="deletedFiles" element={<DeletedArchivedFiles />} />
 

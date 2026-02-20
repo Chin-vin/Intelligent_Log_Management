@@ -106,7 +106,7 @@
 #     db.commit()
  
 #     return {"message": "User removed from team"}
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status,Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -209,34 +209,34 @@ def update_team(
     return {"message": "Team updated successfully"}
 
 
-# ------------------------------------------------------
-# DELETE TEAM (SAFE DELETE)
-# ------------------------------------------------------
-@router.delete("/{team_id}")
-def delete_team(
-    team_id: int,
-    db: Session = Depends(get_db),
-    admin=Depends(require_admin)
-):
-    team = db.query(Team).filter(Team.team_id == team_id).first()
+# # ------------------------------------------------------
+# # DELETE TEAM (SAFE DELETE)
+# # ------------------------------------------------------
+# @router.delete("/{team_id}")
+# def delete_team(
+#     team_id: int,
+#     db: Session = Depends(get_db),
+#     admin=Depends(require_admin)
+# ):
+#     team = db.query(Team).filter(Team.team_id == team_id).first()
 
-    if not team:
-        raise HTTPException(
-            status_code=404,
-            detail="Team not found"
-        )
+#     if not team:
+#         raise HTTPException(
+#             status_code=404,
+#             detail="Team not found"
+#         )
 
-    try:
-        db.delete(team)
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot delete team. It is assigned to users."
-        )
+#     try:
+#         db.delete(team)
+#         db.commit()
+#     except IntegrityError:
+#         db.rollback()
+#         raise HTTPException(
+#             status_code=400,
+#             detail="Cannot delete team. It is assigned to users."
+#         )
 
-    return {"message": "Team deleted successfully"}
+#     return {"message": "Team deleted successfully"}
 
 
 # ------------------------------------------------------
@@ -276,10 +276,13 @@ def get_team_users(
 # ------------------------------------------------------
 # ADD USER TO TEAM
 # ------------------------------------------------------
-@router.post("/{team_id}/users/{user_id}")
+# ------------------------------------------------------
+# ADD USER TO TEAM (BY USERNAME)
+# ------------------------------------------------------
+@router.post("/{team_id}/users")
 def add_user_to_team(
     team_id: int,
-    user_id: int,
+    username: str = Query(..., description="Username of the user"),
     db: Session = Depends(get_db),
     admin=Depends(require_admin)
 ):
@@ -288,14 +291,17 @@ def add_user_to_team(
     if not team:
         raise HTTPException(status_code=404, detail="Team not found")
 
-    # Check if user exists
-    user = db.query(User).filter(User.user_id == user_id).first()
+    # Check if user exists by username
+    user = db.query(User).filter(User.username == username).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"User '{username}' does not exist"
+        )
 
     # Check if mapping already exists
     exists = db.query(UserTeam).filter(
-        UserTeam.user_id == user_id,
+        UserTeam.user_id == user.user_id,
         UserTeam.team_id == team_id
     ).first()
 
@@ -305,12 +311,18 @@ def add_user_to_team(
             detail="User already in team"
         )
 
-    mapping = UserTeam(user_id=user_id, team_id=team_id)
+    # Create mapping
+    mapping = UserTeam(
+        user_id=user.user_id,
+        team_id=team_id
+    )
+
     db.add(mapping)
     db.commit()
 
-    return {"message": "User added to team successfully"}
-
+    return {
+        "message": f"User '{username}' added to team successfully"
+    }
 
 # ------------------------------------------------------
 # REMOVE USER FROM TEAM
@@ -337,3 +349,50 @@ def remove_user_from_team(
     db.commit()
 
     return {"message": "User removed from team successfully"}
+
+# ------------------------------------------------------
+# GET FILES UPLOADED BY TEAM
+# ------------------------------------------------------
+from app.models.files import RawFile
+
+
+@router.get("/{team_id}/files")
+def get_team_files(
+    team_id: int,
+    db: Session = Depends(get_db),
+    admin=Depends(require_admin)
+):
+    # Check if team exists
+    team = db.query(Team).filter(Team.team_id == team_id).first()
+
+    if not team:
+        raise HTTPException(
+            status_code=404,
+            detail="Team not found"
+        )
+
+    # Fetch files uploaded by this team
+    files = (
+        db.query(RawFile)
+        .filter(
+            RawFile.team_id == team_id,
+            RawFile.is_deleted == False
+        )
+        .order_by(RawFile.uploaded_at.desc())
+        .all()
+    )
+
+    return {
+        "team_id": team.team_id,
+        "team_name": team.team_name,
+        "total_files": len(files),
+        "files": [
+            {
+                "file_id": f.file_id,
+                "file_name": f.original_name,
+                "uploaded_at": f.uploaded_at,
+                "file_size_kb": round(f.file_size_bytes / 1024, 2)
+            }
+            for f in files
+        ]
+    }

@@ -588,8 +588,8 @@ export default function AdminLogSearch() {
                       <td>{new Date(log.log_timestamp).toLocaleString()}</td>
                       <td>{log.severity_id}</td>
                       <td>{log.category_id}</td>
-                      <td>{log.host_name}</td>
-                      <td>{log.service_name}</td>
+                      <td>{log.host_name || '--'}</td>
+                      <td>{log.service_name || '--'}</td>
                       <td>{log.message}</td>
                     </tr>
                   ))}

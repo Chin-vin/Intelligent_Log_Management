@@ -61,6 +61,11 @@ export default function UserLogSearch() {
     return `${d}-${m}-${y}`;
   };
 
+  useEffect(() => {
+  if (roles.length > 0) {
+    searchLogs(1, true);
+  }
+}, [roles]);
   const handleChange = (e) => {
     setFilters((p) => ({ ...p, [e.target.name]: e.target.value }));
     setDateError(""); // clear validation on change

@@ -18,7 +18,6 @@ router = APIRouter(
     tags=["Admin Security"]
 )
 
-# ✅ ALL FILE-RELATED ENTITY TYPES GO HERE
 FILE_ENTITY_TYPES = {
     "FILE",
     "RAW_FILE",
@@ -74,7 +73,6 @@ def audit_trail(
     total = q.count()
     rows = q.offset(offset).limit(page_size).all()
 
-    # ---------------- COLLECT ENTITY IDS ----------------
     user_ids = {r.entity_id for r in rows if r.entity_type in ["USER","USER_PROFILE"]}
 
     file_ids = {
@@ -85,7 +83,6 @@ def audit_trail(
 
     team_ids = {r.entity_id for r in rows if r.entity_type == "TEAM"}
 
-    # ---------------- FETCH USERS ----------------
     user_map = {
         u.user_id: (u.username or u.email)
         for u in db.query(User)
@@ -93,15 +90,13 @@ def audit_trail(
         .all()
     } if user_ids else {}
 
-    # ---------------- FETCH FILES (FILENAME) ----------------
     file_map = {
-        f.file_id: f.original_name   # ✅ FILE NAME
+        f.file_id: f.original_name   
         for f in db.query(RawFile)
         .filter(RawFile.file_id.in_(file_ids))
         .all()
     } if file_ids else {}
 
-    # ---------------- FETCH TEAMS ----------------
     team_map = {
         t.team_id: t.team_name
         for t in db.query(Team)
@@ -109,7 +104,6 @@ def audit_trail(
         .all()
     } if team_ids else {}
 
-    # ---------------- ENTITY RESOLVER ----------------
     def resolve_entity(r):
         if r.entity_type in ["USER", "USER_PROFILE"]:
             return user_map.get(r.entity_id, f"User #{r.entity_id}")
@@ -122,7 +116,6 @@ def audit_trail(
 
         return str(r.entity_id)
 
-    # ---------------- RESPONSE ----------------
     return {
     "data": [
         {
@@ -133,7 +126,7 @@ def audit_trail(
             "entity_id": r.entity_id,
             "entity_display": resolve_entity(r),
             "user": r.username or r.email,
-            "role": r.role_name or "N/A",   # ✅ NEW
+            "role": r.role_name or "N/A",   
         }
         for r in rows
     ],
@@ -169,7 +162,6 @@ def get_login_history(
         .order_by(LoginHistory.login_time.desc())
     )
 
-    # ✅ STATUS FILTER
     if success is not None:
         q = q.filter(LoginHistory.success == success)
 

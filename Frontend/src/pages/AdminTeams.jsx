@@ -107,14 +107,23 @@ export default function AdminTeams() {
   switch (status?.toUpperCase()) {
     case "UPLOADED":
       return "bg-primary";
+
     case "PROCESSING":
       return "bg-warning text-dark";
+
     case "COMPLETED":
+    case "PARSED":   // ✅ ADD THIS
       return "bg-success";
+
     case "FAILED":
       return "bg-danger";
+
     case "ARCHIVED":
       return "bg-secondary";
+
+    case "SOFT_DELETED":   // ✅ ADD THIS
+      return "bg-dark";
+
     default:
       return "bg-light text-dark";
   }
@@ -354,17 +363,17 @@ export default function AdminTeams() {
       </div>
 
       {/* ✅ STATUS BADGE */}
-      <div className="mt-1">
-        {f.status ? (
-          <span className={`badge ${statusBadgeClass(f.status_code)}`}>
-            {f.status}
-          </span>
-        ) : (
-          <span className="badge bg-light text-dark">
-            UNKNOWN
-          </span>
-        )}
-      </div>
+     <div className="mt-1">
+  {f.status ? (
+    <span className={`badge ${statusBadgeClass(f.status)}`}>
+      {f.status}
+    </span>
+  ) : (
+    <span className="badge bg-light text-dark">
+      UNKNOWN
+    </span>
+  )}
+</div>
     </div>
 
     <span className="badge bg-secondary">

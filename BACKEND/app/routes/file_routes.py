@@ -42,7 +42,6 @@ from app.models.team_upload_policy import TeamUploadPolicy
 
 from app.services.file_service import upload_file_service
 
-# from app.routes.admin_lookup_routes import require_admin as is_admin
 router = APIRouter(prefix="/files", tags=[" Files"])
 
 
@@ -71,7 +70,7 @@ def soft_delete_file(
     if not file:
         raise HTTPException(status_code=404, detail="File not found")
 
-    # 🔐 Authorization
+    #  Authorization
     admin = is_admin(db, user.user_id)
     if not admin and file.uploaded_by != user.user_id:
         raise HTTPException(
@@ -79,7 +78,7 @@ def soft_delete_file(
             detail="You can delete only your own uploaded files"
         )
 
-    # ✅ ONLY PARSED FILES CAN BE DELETED
+    # ONLY PARSED FILES CAN BE DELETED
     parsed_id = get_status_id_by_code(db, "PARSED")
     if file.status_id != parsed_id:
         raise HTTPException(
@@ -268,68 +267,6 @@ def get_status_id_by_code(db: Session, code: str) -> int:
 
 
 
-
-# @router.post("/upload", status_code=201)
-# async def upload_file(
-#     files: List[UploadFile] = File(...),
-#     team_id: int = Form(...),
-#     source_id: int = Form(...),
-#     db: Session = Depends(get_db),
-#     current_user = Depends(get_current_user),
-# ):
-#     uploaded_files = []
-#     duplicate_files = []
-#     seen_names = set()
-
-#     for file in files:
-#         file_name = file.filename.strip()
-#         lower_name = file_name.lower()
-
-#         if lower_name in seen_names:
-#             duplicate_files.append(file_name)
-#             continue
-
-#         seen_names.add(lower_name)
-
-#         existing = db.query(RawFile).filter(
-#             func.lower(RawFile.original_name) == lower_name,
-#             RawFile.team_id == team_id,
-#             RawFile.source_id == source_id
-#         ).first()
-
-#         if existing:
-#             duplicate_files.append(file_name)
-#             continue
-
-#         # Save file
-#         raw_file = await upload_file_service(
-#             db=db,
-#             current_user=current_user,
-#             file=file,
-#             team_id=team_id,
-#             source_id=source_id,
-#         )
-
-#         # 🔥 Parse immediately and return stats
-#         stats = parse_file(raw_file.file_id)
-
-#         uploaded_files.append({
-#             "file_id": raw_file.file_id,
-#             "file_name": file_name,
-#             "total_records": stats["total_records"],
-#             "parsed_records": stats["parsed_records"],
-#             "skipped_records": stats["skipped_records"]
-
-#         })
-
-#     return {
-#         "uploaded_files": uploaded_files,
-#         "duplicate_files": duplicate_files,
-#         "total_uploaded": len(uploaded_files),
-#         "total_duplicates": len(duplicate_files),
-#         "message": "Upload completed"
-#     }
-
 @router.post("/upload", status_code=201)
 async def upload_file(
     files: List[UploadFile] = File(...),
@@ -344,33 +281,12 @@ async def upload_file(
 
     for file in files:
         file_name = file.filename.strip()
-        lower_name = file_name.lower()
+       
 
-        # 1️⃣ Duplicate inside same request
-        if lower_name in seen_names:
-            duplicate_files.append(file_name)
-            continue
-
-        seen_names.add(lower_name)
-
-        # 2️⃣ Duplicate in DB (case-insensitive exact match)
-        existing = (
-            db.query(RawFile)
-            .filter(
-                func.lower(RawFile.original_name) == lower_name,
-                RawFile.team_id == team_id,
-                RawFile.source_id == source_id,
-            )
-            .first()
-        )
-
-        if existing:
-            duplicate_files.append(file_name)
-            continue
-        # 🔹 Read file content once
+        
         content = await file.read()
 
-        # 🔹 Compute checksum
+        #  Compute checksum
         checksum = hashlib.sha256(content).hexdigest()
 
         # GLOBAL duplicate detection (across ALL files)
@@ -381,7 +297,7 @@ async def upload_file(
         if existing:
             duplicate_files.append(file_name)
             continue
-        # 3️⃣ Save file
+        # Save file
         raw_file = await upload_file_service(
             db=db,
             current_user=current_user,
@@ -392,7 +308,7 @@ async def upload_file(
             source_id=source_id,
         )
 
-        # 🔥 Parse immediately and return stats
+        #  Parse immediately and return stats
         stats = parse_file(raw_file.file_id)
 
         uploaded_files.append(
@@ -424,10 +340,7 @@ def user_preview_file(
     if not file:
         raise HTTPException(status_code=404, detail="File not found")
 
-    # OPTIONAL: ownership / team check
-    # if file.uploaded_by != user.id:
-    #     raise HTTPException(status_code=403, detail="Not allowed")
-
+    
     file_bytes = download_file_from_supabase(file.storage_path)
 
     mime_type, _ = mimetypes.guess_type(file.original_name)
@@ -464,7 +377,6 @@ def get_my_uploaded_files(
         .order_by(desc(RawFile.uploaded_at))
         .all()
     )
-    # print(files[0].status_code)
     return [
         {
             "file_id": f.file_id,
@@ -516,7 +428,7 @@ def my_and_team_files(
             "original_name": f.original_name,
             "file_size_bytes": f.file_size_bytes,
             "uploaded_at": f.uploaded_at,
-            "status": f.status_code   # ✅ IMPORTANT
+            "status": f.status_code 
         }
         for f in files
     ]
@@ -541,7 +453,7 @@ def get_deleted_archived_files(
         )
     )
 
-    # 🔐 If NOT admin → restrict to own files
+    # If NOT admin → restrict to own files
     if not admin:
         query = query.filter(
             RawFile.uploaded_by == current_user.user_id
@@ -581,8 +493,6 @@ def get_my_deleted_archived_files(
         .order_by(desc(RawFile.uploaded_at))
         .all()
     )
-    for f in files:
-        print(f.original_name)
     return [
         {
             "file_id": f.file_id,

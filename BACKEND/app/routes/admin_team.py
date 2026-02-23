@@ -1,115 +1,7 @@
-# from fastapi import APIRouter, Depends, HTTPException
-# from sqlalchemy.orm import Session
-# from app.core.database import get_db
-# from app.routes.admin_lookup_routes import require_admin
-# from app.models.team import Team
-# from app.models.user import User
-# from app.models.user_team import UserTeam
- 
-# router = APIRouter(prefix="/admin/teams", tags=["Admin Teams"])
-
-
-# @router.post("")
-# def create_team(
-#     name: str,
-#     db: Session = Depends(get_db),
-#     admin=Depends(require_admin)
-# ):
- 
-#     existing = db.query(Team).filter(Team.team_name == name).first()
-#     if existing:
-#         raise HTTPException(status_code=400, detail="Team already exists")
- 
-#     team = Team(team_name=name)
-#     db.add(team)
-#     db.commit()
-#     db.refresh(team)
- 
-#     return {"message": "Team created", "team_id": team.team_id}
- 
-# # @router.get("")
-# # def get_teams(db: Session = Depends(get_db), admin=Depends(require_admin)):
-# #     teams = db.query(Team).all()
- 
-# #     return [
-# #         {
-# #             "team_id": t.team_id,
-# #             "team_name": t.team_name,
-# #             "created_at": t.created_at
-# #         }
-# #         for t in teams
-# #     ]
-
-# @router.put("/{team_id}")
-# def update_team(team_id: int, name: str,
-#                 db: Session = Depends(get_db),
-#                 admin=Depends(require_admin)):
- 
-#     team = db.query(Team).filter(Team.team_id == team_id).first()
-#     if not team:
-#         raise HTTPException(status_code=404, detail="Team not found")
- 
-#     team.team_name = name
-#     db.commit()
- 
-#     return {"message": "Team updated"}
- 
-# @router.delete("/{team_id}")
-# def delete_team(team_id: int,
-#                 db: Session = Depends(get_db),
-#                 admin=Depends(require_admin)):
- 
-#     team = db.query(Team).filter(Team.team_id == team_id).first()
-#     if not team:
-#         raise HTTPException(status_code=404, detail="Team not found")
- 
-#     db.delete(team)
-#     db.commit()
- 
-#     return {"message": "Team deleted"}
- 
-# @router.post("/{team_id}/users/{user_id}")
-# def add_user_to_team(team_id: int,
-#                      user_id: int,
-#                      db: Session = Depends(get_db),
-#                      admin=Depends(require_admin)):
- 
-#     exists = db.query(UserTeam).filter(
-#         UserTeam.user_id == user_id,
-#         UserTeam.team_id == team_id
-#     ).first()
- 
-#     if exists:
-#         raise HTTPException(status_code=400, detail="User already in team")
- 
-#     mapping = UserTeam(user_id=user_id, team_id=team_id)
-#     db.add(mapping)
-#     db.commit()
- 
-#     return {"message": "User added to team"}
- 
-# @router.delete("/{team_id}/users/{user_id}")
-# def remove_user(team_id: int,
-#                 user_id: int,
-#                 db: Session = Depends(get_db),
-#                 admin=Depends(require_admin)):
- 
-#     mapping = db.query(UserTeam).filter(
-#         UserTeam.user_id == user_id,
-#         UserTeam.team_id == team_id
-#     ).first()
- 
-#     if not mapping:
-#         raise HTTPException(status_code=404, detail="Mapping not found")
- 
-#     db.delete(mapping)
-#     db.commit()
- 
-#     return {"message": "User removed from team"}
 from fastapi import APIRouter, Depends, HTTPException, status,Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-
+from app.models.files import RawFile
 from app.core.database import get_db
 from app.routes.admin_lookup_routes import require_admin
 
@@ -124,9 +16,6 @@ router = APIRouter(
     tags=["Admin Teams"]
 )
 
-# ------------------------------------------------------
-# CREATE TEAM
-# ------------------------------------------------------
 @router.post("")
 def create_team(
     name: str,
@@ -150,26 +39,6 @@ def create_team(
         "team_id": team.team_id
     }
 
-
-# ------------------------------------------------------
-# GET ALL TEAMS
-# ------------------------------------------------------
-# @router.get("")
-# def get_teams(
-#     db: Session = Depends(get_db),
-#     admin=Depends(require_admin)
-# ):
-#     teams = db.query(Team).order_by(Team.team_name).all()
-
-#     return [
-#         {
-#             "team_id": t.team_id,
-#             "team_name": t.team_name,
-#             "created_at": t.created_at.isoformat() if t.created_at else None
-#         }
-#         for t in teams
-#     ]
-
 @router.get("")
 def get_teams(
     db: Session = Depends(get_db),
@@ -187,9 +56,7 @@ def get_teams(
         }
         for t in teams
     ]
-# ------------------------------------------------------
-# UPDATE TEAM
-# ------------------------------------------------------
+
 @router.put("/{team_id}")
 def update_team(
     team_id: int,
@@ -211,39 +78,6 @@ def update_team(
     return {"message": "Team updated successfully"}
 
 
-# # ------------------------------------------------------
-# # DELETE TEAM (SAFE DELETE)
-# # ------------------------------------------------------
-# @router.delete("/{team_id}")
-# def delete_team(
-#     team_id: int,
-#     db: Session = Depends(get_db),
-#     admin=Depends(require_admin)
-# ):
-#     team = db.query(Team).filter(Team.team_id == team_id).first()
-
-#     if not team:
-#         raise HTTPException(
-#             status_code=404,
-#             detail="Team not found"
-#         )
-
-#     try:
-#         db.delete(team)
-#         db.commit()
-#     except IntegrityError:
-#         db.rollback()
-#         raise HTTPException(
-#             status_code=400,
-#             detail="Cannot delete team. It is assigned to users."
-#         )
-
-#     return {"message": "Team deleted successfully"}
-
-
-# ------------------------------------------------------
-# GET USERS IN TEAM
-# ------------------------------------------------------
 @router.get("/{team_id}/users")
 def get_team_users(
     team_id: int,
@@ -275,12 +109,6 @@ def get_team_users(
     ]
 
 
-# ------------------------------------------------------
-# ADD USER TO TEAM
-# ------------------------------------------------------
-# ------------------------------------------------------
-# ADD USER TO TEAM (BY USERNAME)
-# ------------------------------------------------------
 @router.post("/{team_id}/users")
 def add_user_to_team(
     team_id: int,
@@ -326,9 +154,7 @@ def add_user_to_team(
         "message": f"User '{username}' added to team successfully"
     }
 
-# ------------------------------------------------------
 # REMOVE USER FROM TEAM
-# ------------------------------------------------------
 @router.delete("/{team_id}/users/{user_id}")
 def remove_user_from_team(
     team_id: int,
@@ -352,52 +178,8 @@ def remove_user_from_team(
 
     return {"message": "User removed from team successfully"}
 
-# ------------------------------------------------------
+
 # GET FILES UPLOADED BY TEAM
-# ------------------------------------------------------
-from app.models.files import RawFile
-
-
-# @router.get("/{team_id}/files")
-# def get_team_files(
-#     team_id: int,
-#     db: Session = Depends(get_db),
-#     admin=Depends(require_admin)
-# ):
-#     # Check if team exists
-#     team = db.query(Team).filter(Team.team_id == team_id).first()
-
-#     if not team:
-#         raise HTTPException(
-#             status_code=404,
-#             detail="Team not found"
-#         )
-
-#     # Fetch files uploaded by this team
-#     files = (
-#         db.query(RawFile)
-#         .filter(
-#             RawFile.team_id == team_id,
-            
-#         )
-#         .order_by(RawFile.uploaded_at.desc())
-#         .all()
-#     )
-
-#     return {
-#         "team_id": team.team_id,
-#         "team_name": team.team_name,
-#         "total_files": len(files),
-#         "files": [
-#             {
-#                 "file_id": f.file_id,
-#                 "file_name": f.original_name,
-#                 "uploaded_at": f.uploaded_at,
-#                 "file_size_kb": round(f.file_size_bytes / 1024, 2)
-#             }
-#             for f in files
-#         ]
-#     }
 @router.get("/{team_id}/files")
 def get_team_files(
     team_id: int,
@@ -439,7 +221,7 @@ def get_team_files(
                 "file_name": f.original_name,
                 "uploaded_at": f.uploaded_at,
                 "file_size_kb": round(f.file_size_bytes / 1024, 2),
-                "status": f.status_code  # ✅ NEW
+                "status": f.status_code 
             }
             for f in files
         ]

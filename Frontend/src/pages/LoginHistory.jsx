@@ -27,18 +27,23 @@ export default function LoginHistoryPage() {
 
   /* ---------------- RELATIVE TIME ---------------- */
   const getRelativeTime = (dateString) => {
-    const diff = Date.now() - new Date(dateString).getTime();
-    const minutes = Math.floor(diff / 60000);
+  if (!dateString) return "—";
 
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return `${minutes} min ago`;
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "—";
 
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} hrs ago`;
+  const diff = Date.now() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
 
-    const days = Math.floor(hours / 24);
-    return `${days} days ago`;
-  };
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes} min ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hrs ago`;
+
+  const days = Math.floor(hours / 24);
+  return `${days} days ago`;
+};
 
   /* ---------------- LOAD LOGIN HISTORY ---------------- */
   const loadLoginHistory = async () => {

@@ -380,7 +380,7 @@ export default function AdminLogSearch() {
       setCategories(cat.data || []);
     });
   }, []);
-
+  console.log(severities,categories)
   /* ---------------- SEARCH ---------------- */
   const searchLogs = async (ignoreFilters = false) => {
     try {
@@ -427,6 +427,31 @@ export default function AdminLogSearch() {
       setLoading(false);
     }
   };
+  const severityMap = Object.fromEntries(
+  severities.map((s) => [s.severity_id, s.severity_code])
+);
+
+const categoryMap = Object.fromEntries(
+  categories.map((c) => [c.category_id, c.category_name])
+);
+const severityBadgeClass = (code) => {
+  switch (code?.toUpperCase()) {
+    case "INFO":
+      return "bg-info text-dark";
+    case "WARN":
+    case "WARNING":
+      return "bg-warning text-dark";
+    case "ERROR":
+      return "bg-danger";
+    case "DEBUG":
+      return "bg-secondary";
+    case "CRITICAL":
+    case "SECURITY":
+      return "bg-dark";
+    default:
+      return "bg-light text-dark";
+  }
+};
 
   useEffect(() => {
     searchLogs();
@@ -586,8 +611,25 @@ export default function AdminLogSearch() {
                   {logs.map((log) => (
                     <tr key={log.log_id}>
                       <td>{new Date(log.log_timestamp).toLocaleString()}</td>
-                      <td>{log.severity_id}</td>
-                      <td>{log.category_id}</td>
+                    <td>
+  {(() => {
+    const severityCode =
+      log.severity_code || severityMap[log.severity_id];
+
+    return severityCode ? (
+      <span className={`badge ${severityBadgeClass(severityCode)}`}>
+        {severityCode}
+      </span>
+    ) : (
+      "--"
+    );
+  })()}
+</td>
+<td>
+  {log.category_name ||
+    categoryMap[log.category_id] ||
+    "--"}
+</td>
                       <td>{log.host_name || '--'}</td>
                       <td>{log.service_name || '--'}</td>
                       <td>{log.message}</td>

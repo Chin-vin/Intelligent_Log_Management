@@ -116,6 +116,8 @@ from app.routes.admin_lookup_routes import require_admin
 from app.models.team import Team
 from app.models.user import User
 from app.models.user_team import UserTeam
+from app.models.files import RawFile
+from app.models.lookup import UploadStatus
 
 router = APIRouter(
     prefix="/admin/teams",
@@ -356,13 +358,52 @@ def remove_user_from_team(
 from app.models.files import RawFile
 
 
+# @router.get("/{team_id}/files")
+# def get_team_files(
+#     team_id: int,
+#     db: Session = Depends(get_db),
+#     admin=Depends(require_admin)
+# ):
+#     # Check if team exists
+#     team = db.query(Team).filter(Team.team_id == team_id).first()
+
+#     if not team:
+#         raise HTTPException(
+#             status_code=404,
+#             detail="Team not found"
+#         )
+
+#     # Fetch files uploaded by this team
+#     files = (
+#         db.query(RawFile)
+#         .filter(
+#             RawFile.team_id == team_id,
+            
+#         )
+#         .order_by(RawFile.uploaded_at.desc())
+#         .all()
+#     )
+
+#     return {
+#         "team_id": team.team_id,
+#         "team_name": team.team_name,
+#         "total_files": len(files),
+#         "files": [
+#             {
+#                 "file_id": f.file_id,
+#                 "file_name": f.original_name,
+#                 "uploaded_at": f.uploaded_at,
+#                 "file_size_kb": round(f.file_size_bytes / 1024, 2)
+#             }
+#             for f in files
+#         ]
+#     }
 @router.get("/{team_id}/files")
 def get_team_files(
     team_id: int,
     db: Session = Depends(get_db),
     admin=Depends(require_admin)
 ):
-    # Check if team exists
     team = db.query(Team).filter(Team.team_id == team_id).first()
 
     if not team:
@@ -371,13 +412,19 @@ def get_team_files(
             detail="Team not found"
         )
 
-    # Fetch files uploaded by this team
     files = (
-        db.query(RawFile)
-        .filter(
-            RawFile.team_id == team_id,
-            RawFile.is_deleted == False
+        db.query(
+            RawFile.file_id,
+            RawFile.original_name,
+            RawFile.uploaded_at,
+            RawFile.file_size_bytes,
+            UploadStatus.status_code
         )
+        .outerjoin(
+            UploadStatus,
+            RawFile.status_id == UploadStatus.status_id
+        )
+        .filter(RawFile.team_id == team_id)
         .order_by(RawFile.uploaded_at.desc())
         .all()
     )
@@ -391,7 +438,8 @@ def get_team_files(
                 "file_id": f.file_id,
                 "file_name": f.original_name,
                 "uploaded_at": f.uploaded_at,
-                "file_size_kb": round(f.file_size_bytes / 1024, 2)
+                "file_size_kb": round(f.file_size_bytes / 1024, 2),
+                "status": f.status_code  # ✅ NEW
             }
             for f in files
         ]

@@ -102,7 +102,23 @@ export default function AdminTeams() {
       setError("Failed to load team files");
     }
   };
-
+  console.log(teamFiles)
+  const statusBadgeClass = (status) => {
+  switch (status?.toUpperCase()) {
+    case "UPLOADED":
+      return "bg-primary";
+    case "PROCESSING":
+      return "bg-warning text-dark";
+    case "COMPLETED":
+      return "bg-success";
+    case "FAILED":
+      return "bg-danger";
+    case "ARCHIVED":
+      return "bg-secondary";
+    default:
+      return "bg-light text-dark";
+  }
+};
   /* ---------------- ADD USER (BY USERNAME) ---------------- */
   const addUserToTeam = async () => {
     if (!newUsername.trim()) return;
@@ -325,25 +341,37 @@ export default function AdminTeams() {
             </p>
           ) : (
             <ul className="list-group">
-              {teamFiles.map((f) => (
-                <li
-                  key={f.file_id}
-                  className="list-group-item d-flex justify-content-between align-items-center"
-                >
-                  <div>
-                    <strong>{f.file_name || "-"}</strong>
-                    <div className="small text-muted">
-                      Uploaded:{" "}
-                      {formatDate(f.uploaded_at)}
-                    </div>
-                  </div>
+             {teamFiles.map((f) => (
+  <li
+    key={f.file_id}
+    className="list-group-item d-flex justify-content-between align-items-center"
+  >
+    <div>
+      <strong>{f.file_name || "-"}</strong>
 
-                  <span className="badge bg-secondary">
-                    {f.file_size_kb ?? "-"} KB
-                  </span>
-                </li>
-              ))}
-            </ul>
+      <div className="small text-muted">
+        Uploaded: {formatDate(f.uploaded_at)}
+      </div>
+
+      {/* ✅ STATUS BADGE */}
+      <div className="mt-1">
+        {f.status ? (
+          <span className={`badge ${statusBadgeClass(f.status_code)}`}>
+            {f.status}
+          </span>
+        ) : (
+          <span className="badge bg-light text-dark">
+            UNKNOWN
+          </span>
+        )}
+      </div>
+    </div>
+
+    <span className="badge bg-secondary">
+      {f.file_size_kb ?? "-"} KB
+    </span>
+  </li>
+))} </ul>
           )}
         </div>
       )}

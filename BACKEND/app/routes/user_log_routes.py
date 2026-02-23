@@ -15,47 +15,6 @@ router = APIRouter(
     tags=["User Logs"]
 )
 
-# @router.get("/summary")
-# def logs_summary(
-#     days: int = Query(7, ge=1, le=30),
-#     db: Session = Depends(get_db),
-#     current_user = Depends(get_current_user),
-# ):
-#     start_date = datetime.utcnow() - timedelta(days=days)
-
-#     rows = (
-#         db.query(
-#             func.date(LogEntry.log_timestamp).label("day"),
-#             func.count().label("total_logs"),
-#             func.sum(
-#                 case(
-#                     (LogEntry.severity_id >= 4, 1),
-#                     else_=0
-#                 )
-#             ).label("error_logs"),
-#         )
-#         .join(RawFile, LogEntry.file_id == RawFile.file_id)
-#         .filter(RawFile.uploaded_by == current_user.user_id)
-#         .filter(LogEntry.log_timestamp >= start_date)
-#         .group_by(func.date(LogEntry.log_timestamp))
-#         .order_by(func.date(LogEntry.log_timestamp))
-#         .all()
-#     )
-
-#     result = []
-#     for r in rows:
-#         error_percent = (
-#             round((r.error_logs / r.total_logs) * 100, 2)
-#             if r.total_logs else 0
-#         )
-#         result.append({
-#             "day": r.day.strftime("%d-%m-%Y"),
-#             "total_logs": r.total_logs,
-#             "error_logs": r.error_logs,
-#             "error_percent": error_percent,
-#         })
-
-#     return result
 
 @router.get("/summary")
 def logs_summary(

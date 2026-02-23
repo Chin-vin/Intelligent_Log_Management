@@ -89,20 +89,9 @@ async def upload_file_service(
     #         detail="Upload not allowed for this team, and file type"
     #     )
 
+   
     # -------------------------------------------------
-    # 4️⃣ Read file & checksum (deduplication)
-    # -------------------------------------------------
-    # content = await file.read()
-    # checksum = hashlib.sha256(content).hexdigest()
-
-    # if db.query(RawFile).filter(RawFile.checksum == checksum).first():
-    #     raise HTTPException(
-    #         status_code=409,
-    #         detail="Duplicate file upload detected"
-    #     )
-
-    # -------------------------------------------------
-    # 5️⃣ Flat storage path (no deep nesting ✅)
+    #  Flat storage path (no deep nesting)
     # -------------------------------------------------
     storage_path = (
         f"{current_user.user_id}_"

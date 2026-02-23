@@ -521,39 +521,6 @@ def my_and_team_files(
         for f in files
     ]
 
-
-# @router.get("/deleted-archived")
-# def get_deleted_archived_files(
-#     db: Session = Depends(get_db),
-#     current_user = Depends(get_current_user)
-# ):
-#     files = (
-#         db.query(
-#             RawFile.file_id,
-#             RawFile.original_name,
-#             RawFile.uploaded_at,
-#             UploadStatus.status_code
-#         )
-#         .join(UploadStatus, UploadStatus.status_id == RawFile.status_id)
-#         .filter(
-#             RawFile.uploaded_by == current_user.user_id,
-#             Role.role_name == "ADMIN",
-#             UploadStatus.status_code.in_(["SOFT_DELETED", "ARCHIVED"])
-#         )
-#         .order_by(RawFile.uploaded_at.desc())
-#         .all()
-#     )
-#     for f in files:
-#         print(f.original_name)
-#     return [
-#         {
-#             "file_id": f.file_id,
-#             "original_name": f.original_name,
-#             "uploaded_at": f.uploaded_at,
-#             "status": f.status_code
-#         }
-#         for f in files
-#     ]
 @router.get("/deleted-archived")
 def get_deleted_archived_files(
     db: Session = Depends(get_db),

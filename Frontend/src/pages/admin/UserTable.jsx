@@ -5,7 +5,6 @@ export default function UserTable({ users, onSuccess, onError }) {
     <div className="card shadow-sm">
       <div className="card-body">
 
-        {/* 👇 RESPONSIVE WRAPPER */}
         <div className="table-responsive">
           <table className="table table-hover table-sm align-middle">
             <thead className="table-light">

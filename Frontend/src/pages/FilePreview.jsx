@@ -14,7 +14,6 @@ export default function FilePreview() {
   const [csvRows, setCsvRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔥 DETECT ADMIN vs USER
   const isAdmin = location.pathname.startsWith("/admin");
 
   useEffect(() => {

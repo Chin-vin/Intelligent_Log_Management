@@ -74,7 +74,7 @@ def get_teams(db: Session = Depends(get_db)):
         for t in db.query(Team).order_by(Team.team_name).all()
     ]
 
-# lookups.py
+
 @router.get("/my-teams")
 def my_teams(db: Session = Depends(get_db), user=Depends(get_current_user)):
     teams = (

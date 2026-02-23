@@ -37,9 +37,6 @@ def login_user(
         User.is_deleted == False
     ).first()
 
-    # ===============================
-    # ❌ USER NOT FOUND
-    # ===============================
     if not user:
         db.add(LoginHistory(
             user_id=None,
@@ -55,10 +52,9 @@ def login_user(
             detail="Invalid credentials"
         )
 
-    # ===============================
-    # ❌ ACCOUNT DISABLED
-    # ===============================
-    if not user.is_active:
+    
+    #  ACCOUNT DISABLED
+      if not user.is_active:
         db.add(LoginHistory(
             user_id=user.user_id,
             login_ip=ip_address,
@@ -92,9 +88,7 @@ def login_user(
             detail="Authentication system error"
         )
 
-    # ===============================
-    # 🔓 AUTO UNLOCK IF TIME EXPIRED
-    # ===============================
+    # AUTO UNLOCK IF TIME EXPIRED
     if (
         credentials.is_locked
         and credentials.locked_until
@@ -104,9 +98,7 @@ def login_user(
         credentials.failed_attempts = 0
         credentials.locked_until = None
 
-    # ===============================
-    # ❌ ACCOUNT LOCKED
-    # ===============================
+    # ACCOUNT LOCKED
     if (
         credentials.is_locked
         and credentials.locked_until
@@ -126,9 +118,7 @@ def login_user(
             detail=f"Account locked until {credentials.locked_until}"
         )
 
-    # ===============================
-    # ❌ INVALID PASSWORD
-    # ===============================
+    # INVALID PASSWORD
     if not verify_password(password, credentials.password_hash):
         credentials.failed_attempts += 1
         credentials.last_failed_at = now
@@ -152,9 +142,7 @@ def login_user(
             detail="Invalid credentials"
         )
 
-    # ===============================
-    # ✅ SUCCESS LOGIN
-    # ===============================
+    # SUCCESS LOGIN
     credentials.failed_attempts = 0
     credentials.is_locked = False
     credentials.locked_until = None
@@ -199,24 +187,24 @@ def change_password(
     if not credentials:
         raise HTTPException(status_code=404, detail="Credentials not found")
 
-    # 1️⃣ Verify old password
+    # Verify old password
     if not verify_password(old_password, credentials.password_hash):
         raise HTTPException(status_code=401, detail="Old password is incorrect")
 
-    # 2️⃣ Prevent reusing same password
+    # Prevent reusing same password
     if verify_password(new_password, credentials.password_hash):
         raise HTTPException(
             status_code=400,
             detail="New password must be different from old password"
         )
 
-    # 3️⃣ Hash new password
+    # Hash new password
     credentials.password_hash = hash_password(new_password)
 
-    # 4️⃣ Update password change timestamp
+    # Update password change timestamp
     credentials.password_changed_at = datetime.now(timezone.utc)
 
-    # 5️⃣ Reset security counters
+    #  Reset security counters
     credentials.failed_attempts = 0
     credentials.is_locked = False
     credentials.locked_until = None

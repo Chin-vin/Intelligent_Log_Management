@@ -1,28 +1,3 @@
-// import { Link } from "react-router-dom";
-// import "./sidebar/Sidebar.css";
-
-// export default function UserSidebar() {
-//   return (
-//     <div className="sidebar">
-//       {/* <h6 className="sidebar-title">USER</h6> */}
-
-//       <Link to="/dashboard" className="sidebar-link">
-//         <i className="bi bi-speedometer2 me-2"></i>
-//         Overview
-//       </Link>
-
-//       <Link to="/dashboard/logs" className="sidebar-link">
-//         <i className="bi bi-search me-2"></i>
-//         My Logs
-//       </Link>
-
-//       <Link to="/dashboard/files" className="sidebar-link">
-//         <i className="bi bi-folder2-open me-2"></i>
-//         My & Team Files
-//       </Link>
-//     </div>
-//   );
-// }
 import { NavLink } from "react-router-dom";
 import "./sidebar/Sidebar.css";
 

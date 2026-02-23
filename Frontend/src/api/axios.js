@@ -15,14 +15,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-/* ✅ RESPONSE: Handle token expiry */
+/*RESPONSE: Handle token expiry */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
     const url = error.config?.url;
 
-    // ❌ DO NOT redirect for login failures
+    //  DO NOT redirect for login failures
     if (status === 401 && !url.includes("/auth/login")) {
       console.warn("Token expired or unauthorized");
 

@@ -6,7 +6,7 @@ export default function CreateUser() {
   const [roles, setRoles] = useState([]);
   const [teams, setTeams] = useState([]);
   const [result, setResult] = useState(null);
-  const [error, setError] = useState(null); // ✅ error state
+  const [error, setError] = useState(null); 
 
   const [form, setForm] = useState({
     email: "",
@@ -59,7 +59,7 @@ export default function CreateUser() {
         team_ids: [],
       });
     } catch (err) {
-      // ✅ robust error handling
+      //  robust error handling
       if (err.response && err.response.data) {
         const data = err.response.data;
 

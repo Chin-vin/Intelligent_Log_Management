@@ -39,11 +39,11 @@ def list_users(
 
     query = db.query(User).filter(User.user_id != current_user.user_id)
 
-    # 🔍 EMAIL FILTER
+    #  EMAIL FILTER
     if email:
         query = query.filter(User.email.ilike(f"%{email}%"))
 
-    # 🏷 ROLE FILTER
+    # ROLE FILTER
     if role:
         query = (
             query
@@ -52,7 +52,7 @@ def list_users(
             .filter(Role.role_name == role)
         )
 
-    # 👥 TEAM FILTER
+    # TEAM FILTER
     if team:
         query = (
             query
@@ -61,10 +61,10 @@ def list_users(
             .filter(Team.team_name == team)
         )
 
-    # ✅ TOTAL COUNT (AFTER FILTERS)
+    # TOTAL COUNT (AFTER FILTERS)
     total = query.group_by(User.user_id).count()
 
-    # ✅ USERS QUERY (NO DISTINCT!)
+    # USERS QUERY (NO DISTINCT!)
     users = (
         query
         .group_by(User.user_id)
@@ -155,13 +155,12 @@ def get_user_details(
             "phone_number": profile.phone_number if profile else None,
             "job_title": profile.job_title if profile else None,
         },
-         # ✅ SERIALIZED ROLES
         "roles": [
             {"role_id": r.role_id, "role_name": r.role_name}
             for r in roles
         ],
 
-        # ✅ SERIALIZED TEAMS
+        
         "teams": [
             {"team_id": t.team_id, "team_name": t.team_name}
             for t in teams
@@ -267,11 +266,9 @@ def update_user(
     if not user:
         raise HTTPException(404, "User not found")
 
-    # -------- USER --------
     if payload.is_active is not None:
         user.is_active = payload.is_active
 
-    # -------- PROFILE --------
     profile = db.query(UserProfile).filter_by(user_id=user_id).first()
     if profile:
         for field in ["first_name", "last_name", "phone_number", "job_title"]:
@@ -279,7 +276,6 @@ def update_user(
             if value is not None:
                 setattr(profile, field, value)
 
-    # -------- ROLES --------
     if payload.roles is not None:
         db.query(UserRole).filter(UserRole.user_id == user_id).delete()
 
@@ -287,14 +283,12 @@ def update_user(
         for r in roles:
             db.add(UserRole(user_id=user_id, role_id=r.role_id))
 
-    # -------- TEAMS --------
     if payload.teams is not None:
         db.query(UserTeam).filter(UserTeam.user_id == user_id).delete()
 
         for team_id in payload.teams:
             db.add(UserTeam(user_id=user_id, team_id=team_id))
 
-    # -------- AUDIT --------
     db.add(AuditTrail(
         user_id=current_user.user_id,
         action_type="UPDATE_USER",

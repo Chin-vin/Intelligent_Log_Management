@@ -11,7 +11,6 @@ from app.models.team_upload_policy import TeamUploadPolicy
 from app.models.file_format import FileFormat
 from app.models.audit import AuditTrail
 from app.models.lookup import UploadStatus
-# from app.routes.file_routes import get_status_id_by_code
 
 def get_status_id_by_code(db: Session, code: str) -> int:
     status = (
@@ -35,11 +34,8 @@ async def upload_file_service(
     checksum: str,
     team_id: int,
     source_id: int,
-    # category_id: int
 ):
-    # -------------------------------------------------
-    # 1️⃣ Validate user belongs to selected team
-    # -------------------------------------------------
+    # Validate user belongs to selected team
     is_member = db.query(UserTeam).filter(
         UserTeam.user_id == current_user.user_id,
         UserTeam.team_id == team_id
@@ -51,9 +47,7 @@ async def upload_file_service(
             detail="You are not a member of the selected team"
         )
 
-    # -------------------------------------------------
-    # 2️⃣ Detect file format
-    # -------------------------------------------------
+    # Detect file format
     ext = file.filename.lower().rsplit(".", 1)[-1]
     ext_to_format = {
         "txt": "TEXT",
@@ -73,26 +67,9 @@ async def upload_file_service(
     if not format_row:
         raise HTTPException(500, "File format not configured in system")
 
-    # -------------------------------------------------
-    # 3️⃣ Enforce team_upload_policies ✅
-    # -------------------------------------------------
-    # policy = db.query(TeamUploadPolicy).filter(
-    #     TeamUploadPolicy.team_id == team_id,
-    #     # TeamUploadPolicy.category_id == category_id,
-    #     TeamUploadPolicy.format_id == format_row.format_id,
-    #     TeamUploadPolicy.is_allowed == True
-    # ).first()
-
-    # if not policy:
-    #     raise HTTPException(
-    #         status_code=403,
-    #         detail="Upload not allowed for this team, and file type"
-    #     )
+  
 
    
-    # -------------------------------------------------
-    #  Flat storage path (no deep nesting)
-    # -------------------------------------------------
     storage_path = (
         f"{current_user.user_id}_"
         f"{team_id}_"
@@ -100,9 +77,7 @@ async def upload_file_service(
         f"{file.filename}"
     )
 
-    # -------------------------------------------------
-    # 6️⃣ Upload to Supabase
-    # -------------------------------------------------
+    # Upload to Supabase
     try:
         supabase.storage.from_("raw_files").upload(
             storage_path,
@@ -115,9 +90,7 @@ async def upload_file_service(
             detail=f"Storage upload failed: {e}"
         )
 
-    # -------------------------------------------------
-    # 7️⃣ Persist raw_files metadata
-    # -------------------------------------------------
+    # Persist raw_files metadata
     raw_file = RawFile(
         team_id=team_id,
         uploaded_by=current_user.user_id,
@@ -126,7 +99,7 @@ async def upload_file_service(
         checksum=checksum,
         format_id=format_row.format_id,
         source_id=source_id,
-        storage_type_id=2,  # OBJECT (Supabase)
+        storage_type_id=2, 
         storage_path=storage_path,
         
         status_id=get_status_id_by_code(db, "UPLOADED"),
@@ -136,9 +109,7 @@ async def upload_file_service(
     db.add(raw_file)
     db.flush()
 
-    # -------------------------------------------------
-    # 8️⃣ Audit trail
-    # -------------------------------------------------
+    #Audit trail
     db.add(AuditTrail(
         user_id=current_user.user_id,
         action_type="UPLOAD_FILE",

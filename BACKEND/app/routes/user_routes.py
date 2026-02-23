@@ -40,7 +40,6 @@ def get_my_profile(
         .all()
     )
 
-    # Profile (optional)
     profile = (
         db.query(UserProfile)
         .filter(UserProfile.user_id == current_user.user_id)
@@ -91,7 +90,7 @@ def get_my_profile(
         "phone_number": profile.phone_number if profile else "",
         "job_title": profile.job_title if profile else "",
         "profile_image_url": profile.profile_image_url if profile else "",
-        "teams": [t.team_name for t in teams],  # 👈 VIEW ONLY
+        "teams": [t.team_name for t in teams],  
     }
 
 
@@ -145,7 +144,7 @@ def admin_create_user(
 ):
     result = create_user_by_admin(
         db=db,
-        admin_user_id=current_user.user_id,   # ✅ derived from JWT
+        admin_user_id=current_user.user_id,  
         payload=payload
     )
 

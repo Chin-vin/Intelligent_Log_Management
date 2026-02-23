@@ -12,7 +12,7 @@ export default function LogsPerDayPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // 🔑 force reload trigger
+  //  force reload trigger
   const [filtersKey, setFiltersKey] = useState(0);
 
   /* ================= PAGINATION ================= */
@@ -60,7 +60,6 @@ export default function LogsPerDayPage() {
     setRange("all");
     setPage(1);
 
-    // 🔥 force reload
     setFiltersKey((k) => k + 1);
   };
 
@@ -70,7 +69,6 @@ export default function LogsPerDayPage() {
     setRange("all");
     setPage(1);
 
-    // 🔥 force reload
     setFiltersKey((k) => k + 1);
   };
 
@@ -97,8 +95,6 @@ export default function LogsPerDayPage() {
             setStartDate("");
             setEndDate("");
             setPage(1);
-
-            // 🔥 force reload
             setFiltersKey((k) => k + 1);
           }}
         >

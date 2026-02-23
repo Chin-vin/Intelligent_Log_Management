@@ -136,16 +136,14 @@ def extract_kv_from_text(line: str) -> dict:
 
 def parse_record(record: dict | str) -> dict | None:
 
-    # =========================
-    # 🔹 TEXT LOGS
-    # =========================
+    # TEXT LOGS
     if isinstance(record, str):
 
         line = record.strip()
         if not line:
             return None
 
-        # 🔹 1️⃣ Extract timestamp from beginning (first token that parses)
+        #  Extract timestamp from beginning (first token that parses)
         parts = line.split()
 
         timestamp = None
@@ -167,7 +165,7 @@ def parse_record(record: dict | str) -> dict | None:
         # Remove timestamp portion from line
         remaining = line[len(timestamp_str):].strip()
 
-        # 🔹 2️⃣ Extract severity
+        # Extract severity
         severity = None
         for s in SEVERITIES:
             if remaining.upper().startswith(s):
@@ -178,7 +176,7 @@ def parse_record(record: dict | str) -> dict | None:
         if not severity:
             severity = infer_severity(line)
 
-        # 🔹 3️⃣ Extract key=value pairs
+        #  Extract key=value pairs
         kv_fields = extract_kv_from_text(remaining)
         fields = normalize_fields(kv_fields)
 
@@ -186,7 +184,7 @@ def parse_record(record: dict | str) -> dict | None:
         service = fields.get("service")
         environment = fields.get("environment")
 
-        # 🔹 4️⃣ Remove key=value parts from message
+        #  Remove key=value parts from message
         message = re.sub(
             r"[a-zA-Z_@]+\s*[:=]\s*(\".*?\"|\'.*?\'|\[.*?\]|\(.*?\)|[^\s]+)",
             "",
@@ -206,9 +204,7 @@ def parse_record(record: dict | str) -> dict | None:
             "raw": line
         }
 
-    # =========================
-    # 🔹 STRUCTURED LOGS
-    # =========================
+    # STRUCTURED LOGS
     fields = normalize_fields(record)
 
     ts = parse_timestamp(fields.get("timestamp"))
@@ -275,7 +271,7 @@ def parse_mixed_content(content: bytes):
         if not line:
             continue
 
-        # 🔹 Try JSON (single-line JSON)
+        # Try JSON (single-line JSON)
         try:
             obj = json.loads(line)
             records.append(obj)
@@ -283,7 +279,7 @@ def parse_mixed_content(content: bytes):
         except:
             pass
 
-        # 🔹 Try XML block
+        #  Try XML block
         if line.startswith("<"):
             xml_buffer += line
             try:
@@ -295,7 +291,7 @@ def parse_mixed_content(content: bytes):
             except:
                 continue
 
-        # 🔹 Try CSV-like row
+        # Try CSV-like row
         if "," in line and not line.startswith("{"):
             parts = line.split(",")
             if len(parts) >= 3:
@@ -306,7 +302,7 @@ def parse_mixed_content(content: bytes):
                 })
                 continue
 
-        # 🔹 Default → Treat as plain text
+        #  Default → Treat as plain text
         records.append(line)
 
     return records
@@ -318,7 +314,7 @@ def parse_file(file_id: int):
     db: Session = SessionLocal()
     raw_file = None
 
-    BATCH_SIZE = 500  # 🔥 configurable
+    BATCH_SIZE = 500  
 
     try:
         raw_file = db.query(RawFile).filter(
@@ -336,7 +332,7 @@ def parse_file(file_id: int):
         content_str = content.decode("utf-8", errors="ignore").strip()
         records = []
 
-        # 🔹 FORMAT DETECTION
+        #  FORMAT DETECTION
         try:
             full_json = json.loads(content_str)
             if isinstance(full_json, list):
@@ -359,7 +355,7 @@ def parse_file(file_id: int):
                 except Exception:
                     records = parse_mixed_content(content)
 
-        # 🔥 REAL BATCH PROCESSING
+        # REAL BATCH PROCESSING
         total_records = len(records)
         parsed_count = 0
         skipped_count = 0
@@ -398,13 +394,13 @@ def parse_file(file_id: int):
             batch_objects.append(log_obj)
             parsed_count += 1
 
-            # 🔹 When batch full → bulk insert
+            #  When batch full → bulk insert
             if len(batch_objects) >= BATCH_SIZE:
                 db.bulk_save_objects(batch_objects)
                 db.commit()
-                batch_objects.clear()  # 🔥 free memory
+                batch_objects.clear()  
 
-        # 🔹 Insert remaining logs
+        # Insert remaining logs
         if batch_objects:
             db.bulk_save_objects(batch_objects)
             db.commit()

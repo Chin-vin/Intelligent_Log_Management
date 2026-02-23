@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
     storedUser ? JSON.parse(storedUser) : null
   );
 
-  /* ✅ LOGIN */
+  /* LOGIN */
   const login = async (email, password) => {
     const res = await api.post("/auth/login", {
       email,
@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
     return meRes.data;
   };
 
-  /* ✅ LOGOUT */
+  /* LOGOUT */
   const logout = () => {
     localStorage.clear();
     setUser(null);

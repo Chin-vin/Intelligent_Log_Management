@@ -185,7 +185,7 @@ export default function AuditTrailPage() {
 
                     <td>{a.user || "—"}</td>
 
-                    {/* ✅ ROLE COLUMN FIXED */}
+                    {/* ROLE COLUMN FIXED */}
                     <td>
                       {a.role ? (
                         <span className={`badge ${roleBadgeClass(a.role)}`}>

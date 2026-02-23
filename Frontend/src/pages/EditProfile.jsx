@@ -93,16 +93,7 @@ export default function EditProfile() {
               />
             </div>
 
-            {/* <div className="col-md-6">
-              <label className="form-label">Job Title</label>
-              <input
-                className="form-control"
-                value={form.job_title}
-                onChange={(e) =>
-                  setForm({ ...form, job_title: e.target.value })
-                }
-              />
-            </div> */}
+            
 
             <div className="col-12">
               <label className="form-label">Profile Image URL</label>

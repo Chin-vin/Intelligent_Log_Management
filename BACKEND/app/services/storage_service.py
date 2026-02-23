@@ -1,10 +1,9 @@
 from app.core.supabase import supabase
-# from supabase.lib.client_options import StorageException
 
 def build_archive_path(old_path: str) -> str:
     old_path = old_path.lstrip("/")
 
-    # ✅ Prevent nested archive/archive
+    # Prevent nested archive/archive
     if old_path.startswith("archive/"):
         return old_path
 
@@ -17,9 +16,9 @@ def move_storage_file(old_path: str, new_path: str):
     old_path = old_path.lstrip("/")
     new_path = new_path.lstrip("/")
 
-    # 🛑 Prevent self-copy
+    # Prevent self-copy
     if old_path == new_path:
-        print("⚠️ File already archived, skipping move")
+        print(" File already archived, skipping move")
         return
 
     print("OLD:", old_path)
@@ -27,13 +26,13 @@ def move_storage_file(old_path: str, new_path: str):
 
     try:
         bucket.copy(old_path, new_path)
-        print("✅ COPY SUCCESS")
+        print(" COPY SUCCESS")
 
         bucket.remove([old_path])
-        print("✅ DELETE SUCCESS")
+        print(" DELETE SUCCESS")
 
     except Exception as e:
-        print("❌ STORAGE ERROR:", repr(e))
+        print("STORAGE ERROR:", repr(e))
         raise RuntimeError(f"Storage move failed: {e}")
 
 def download_file_from_supabase(path: str) -> bytes:
@@ -54,7 +53,7 @@ def delete_storage_file(path: str):
 
     try:
         bucket.remove([path])
-        print(f"🗑️ Storage deleted: {path}")
+        print(f"Storage deleted: {path}")
     except Exception as e:
-        print("❌ STORAGE DELETE ERROR:", repr(e))
+        print("STORAGE DELETE ERROR:", repr(e))
         raise RuntimeError(f"Storage delete failed: {e}")

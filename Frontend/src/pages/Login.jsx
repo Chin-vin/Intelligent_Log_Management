@@ -26,7 +26,6 @@ const handleSubmit = async (e) => {
 
   } catch (err) {
 
-    // 🛑 No response → Network or server down
     if (!err.response) {
       setError("Server unreachable. Please try again later.");
       return;

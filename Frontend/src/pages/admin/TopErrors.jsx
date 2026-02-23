@@ -8,11 +8,9 @@ export default function TopErrorsPage() {
   /* ================= FILTERS ================= */
   const [range, setRange] = useState("all");
 
-  // UI dates (YYYY-MM-DD)
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // 🔑 force reload trigger
   const [filtersKey, setFiltersKey] = useState(0);
 
   /* ================= PAGINATION ================= */
@@ -60,7 +58,6 @@ export default function TopErrorsPage() {
     setRange("all");
     setPage(1);
 
-    // 🔥 force reload
     setFiltersKey((k) => k + 1);
   };
 
@@ -70,7 +67,6 @@ export default function TopErrorsPage() {
     setRange("all");
     setPage(1);
 
-    // 🔥 force reload
     setFiltersKey((k) => k + 1);
   };
 

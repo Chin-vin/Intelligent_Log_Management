@@ -23,7 +23,7 @@
 
 .admin-table th:last-child,
 .admin-table td:last-child {
-  width: 120px;      /* 👈 control spacing here */
+  width: 120px; 
   text-align: right;
 }
 
@@ -39,7 +39,7 @@
 }
 .admin-table td,
 .admin-table th {
-  padding: 8px 12px;   /* default is usually larger */
+  padding: 8px 12px;   
 }
 
 /* Table tweaks */

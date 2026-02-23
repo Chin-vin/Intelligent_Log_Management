@@ -112,7 +112,7 @@ export default function AdminTeams() {
       return "bg-warning text-dark";
 
     case "COMPLETED":
-    case "PARSED":   // ✅ ADD THIS
+    case "PARSED":   
       return "bg-success";
 
     case "FAILED":
@@ -121,7 +121,7 @@ export default function AdminTeams() {
     case "ARCHIVED":
       return "bg-secondary";
 
-    case "SOFT_DELETED":   // ✅ ADD THIS
+    case "SOFT_DELETED":   
       return "bg-dark";
 
     default:
@@ -362,7 +362,7 @@ export default function AdminTeams() {
         Uploaded: {formatDate(f.uploaded_at)}
       </div>
 
-      {/* ✅ STATUS BADGE */}
+      {/* STATUS BADGE */}
      <div className="mt-1">
   {f.status ? (
     <span className={`badge ${statusBadgeClass(f.status)}`}>

@@ -7,7 +7,7 @@ export default function UserDeletedArchived() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // 🔹 Fetch USER deleted + archived files
+  // Fetch USER deleted + archived files
   const fetchFiles = async () => {
     try {
       const res = await api.get("/files/my-deleted-archived");
@@ -23,7 +23,7 @@ export default function UserDeletedArchived() {
     fetchFiles();
   }, []);
 
-  // 🔹 Restore file (same API works)
+  //  Restore file (same API works)
   const handleRestore = async (fileId) => {
     try {
       await api.patch(`/files/${fileId}/restore`);
@@ -36,7 +36,7 @@ export default function UserDeletedArchived() {
     }
   };
 
-  // 🔹 Filtering
+  // Filtering
   const filteredFiles = files.filter((file) => {
     const matchStatus =
       statusFilter === "ALL" || file.status === statusFilter;

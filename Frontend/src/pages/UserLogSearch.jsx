@@ -2,39 +2,33 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 
 export default function UserLogSearch() {
-  /* ---------- AUTH / LOOKUPS ---------- */
   const [roles, setRoles] = useState([]);
   const [severities, setSeverities] = useState([]);
   const [categories, setCategories] = useState([]);
 
-  /* ---------- LOG DATA ---------- */
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  /* ---------- PAGINATION ---------- */
   const [page, setPage] = useState(1);
   const pageSize = 25;
   const [total, setTotal] = useState(0);
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  /* ---------- VALIDATION ---------- */
   const [dateError, setDateError] = useState("");
 
-  /* ---------- FILTERS ---------- */
   const defaultFilters = {
     start_date: "",
     end_date: "",
     severity_id: "",
     category_id: "",
     keyword: "",
-    scope: "team", // user only
+    scope: "team", 
   };
 
   const [filters, setFilters] = useState(defaultFilters);
 
   const isAdmin = roles.includes("ADMIN");
 
-  /* ---------- INIT ---------- */
   useEffect(() => {
     const init = async () => {
       try {
@@ -54,7 +48,6 @@ export default function UserLogSearch() {
     init();
   }, []);
 
-  /* ---------- HELPERS ---------- */
   const toDDMMYYYY = (dateStr) => {
     if (!dateStr) return "";
     const [y, m, d] = dateStr.split("-");
@@ -68,7 +61,7 @@ export default function UserLogSearch() {
 }, [roles]);
   const handleChange = (e) => {
     setFilters((p) => ({ ...p, [e.target.name]: e.target.value }));
-    setDateError(""); // clear validation on change
+    setDateError(""); 
   };
 
   /* ---------- RESET FILTERS ---------- */
@@ -104,7 +97,7 @@ export default function UserLogSearch() {
 
   /* ---------- SEARCH ---------- */
   const searchLogs = async (targetPage = 1, ignoreFilters = false) => {
-    // 🔴 DATE VALIDATION
+
     if (!ignoreFilters && filters.start_date && filters.end_date) {
       const start = new Date(filters.start_date);
       const end = new Date(filters.end_date);

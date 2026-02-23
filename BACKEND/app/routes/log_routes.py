@@ -6,7 +6,7 @@ from app.models.logs import LogEntry
 from sqlalchemy import func
 from app.core.database import get_db
 from app.models.logs import LogEntry
-from app.models.lookup import LogSeverity   # 👈 correct severity lookup table
+from app.models.lookup import LogSeverity  
 from datetime import datetime, timedelta, timezone, time,date
 from sqlalchemy import func
 from app.models.logs import LogEntry
@@ -243,107 +243,6 @@ def top_error_types(
         "total": total
     }
 
-
-# @router.get("/summary/active-systems")
-# def most_active_systems(
-#     range: Optional[str] = Query("all", description="all,7d,10d,30d,90d"),
-#     host: Optional[str] = Query(None, description="Host name search"),
-#     start_date: Optional[str] = Query(None, description="DD-MM-YYYY"),
-#     end_date: Optional[str] = Query(None, description="DD-MM-YYYY"),
-#     page: int = Query(1, ge=1),
-#     page_size: int = Query(10, ge=5, le=50),
-#     db: Session = Depends(get_db),
-# ):
-#     """
-#     Returns most active systems grouped by host name.
-#     Supports:
-#     - time range (7d, 30d, etc.)
-#     - host search (ILIKE)
-#     - custom date range
-#     - pagination
-#     """
-
-#     # ---------- BASE QUERY ----------
-#     base_query = (
-#         db.query(
-#             LogEntry.host_name.label("host"),
-#             func.count(LogEntry.log_id).label("log_count")
-#         )
-#         .filter(LogEntry.host_name.isnot(None))
-#     )
-
-#     # ---------- RANGE FILTER ----------
-#     if range and range != "all":
-#         try:
-#             days = int(range.rstrip("d"))
-#             from_date = datetime.utcnow() - timedelta(days=days)
-#             base_query = base_query.filter(
-#                 LogEntry.log_timestamp >= from_date
-#             )
-#         except ValueError:
-#             raise HTTPException(status_code=400, detail="Invalid range format")
-
-#     # ---------- HOST SEARCH ----------
-#     if host:
-#         base_query = base_query.filter(
-#             LogEntry.host_name.ilike(f"%{host}%")
-#         )
-
-#     # ---------- CUSTOM DATE RANGE ----------
-#     if start_date:
-#         try:
-#             start = datetime.strptime(start_date, "%d-%m-%Y")
-#             base_query = base_query.filter(
-#                 LogEntry.log_timestamp >= start
-#             )
-#         except ValueError:
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail="Invalid start_date format (expected DD-MM-YYYY)"
-#             )
-
-#     if end_date:
-#         try:
-#             end = datetime.strptime(end_date, "%d-%m-%Y") + timedelta(days=1)
-#             base_query = base_query.filter(
-#                 LogEntry.log_timestamp < end
-#             )
-#         except ValueError:
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail="Invalid end_date format (expected DD-MM-YYYY)"
-#             )
-
-#     # ---------- GROUP & ORDER ----------
-#     grouped_query = (
-#         base_query
-#         .group_by(LogEntry.host_name)
-#         .order_by(func.count(LogEntry.log_id).desc())
-#     )
-
-#     # ---------- TOTAL (AFTER GROUPING) ----------
-#     total = grouped_query.count()
-
-#     # ---------- PAGINATION ----------
-#     rows = (
-#         grouped_query
-#         .offset((page - 1) * page_size)
-#         .limit(page_size)
-#         .all()
-#     )
-
-#     return {
-#         "data": [
-#             {
-#                 "host": row.host,
-#                 "log_count": row.log_count
-#             }
-#             for row in rows
-#         ],
-#         "page": page,
-#         "page_size": page_size,
-#         "total": total
-#     }
 @router.get("/summary/active-systems")
 def most_active_systems(
     range: Optional[str] = Query("all"),
@@ -434,7 +333,6 @@ def severity_trend(
     from_date = None
     to_date = None
 
-    # ---------------- RANGE FILTER ----------------
     if range and range != "all":
         try:
             days = int(range.rstrip("d"))
@@ -442,7 +340,6 @@ def severity_trend(
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid range format")
 
-    # ---------------- CUSTOM DATE FILTER ----------------
     if start_date:
         try:
             from_date = datetime.strptime(start_date, "%d-%m-%Y")
@@ -461,7 +358,6 @@ def severity_trend(
                 detail="Invalid end_date format (DD-MM-YYYY)"
             )
 
-    # ---------------- DETERMINE AGGREGATION ----------------
     aggregation = "day"
 
     if from_date:
@@ -478,7 +374,6 @@ def severity_trend(
     else:
         period_expr = func.date_trunc("month", LogEntry.log_timestamp)
 
-    # ---------------- BASE FILTER QUERY ----------------
     filter_query = db.query(LogEntry)
 
     if from_date:
@@ -491,7 +386,6 @@ def severity_trend(
             LogEntry.log_timestamp < to_date
         )
 
-    # ---------------- STEP 1: GET UNIQUE PERIODS ----------------
     periods_query = (
         db.query(period_expr.label("period"))
         .select_from(LogEntry)
@@ -516,7 +410,6 @@ def severity_trend(
     all_periods = [row.period for row in periods_query.all()]
     total = len(all_periods)
 
-    # ---------------- STEP 2: PAGINATE PERIODS ----------------
     start_index = (page - 1) * page_size
     end_index = start_index + page_size
     selected_periods = all_periods[start_index:end_index]
@@ -530,7 +423,7 @@ def severity_trend(
             "data": []
         }
 
-    # ---------------- STEP 3: FETCH FULL DATA FOR SELECTED PERIODS ----------------
+    
     data_query = (
         db.query(
             period_expr.label("period"),

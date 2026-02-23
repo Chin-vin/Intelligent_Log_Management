@@ -86,13 +86,13 @@ def search_my_logs(
     scope = mine → logs from files uploaded by user
     """
 
-    # 1️⃣ Base query
+    # Base query
     query = (
         db.query(LogEntry)
         .join(RawFile, LogEntry.file_id == RawFile.file_id)
     )
 
-    # 2️⃣ Scope logic
+    # Scope logic
     if scope == "mine":
         query = query.filter(
             RawFile.uploaded_by == current_user.user_id
@@ -107,7 +107,7 @@ def search_my_logs(
             RawFile.team_id.in_(team_ids_subq)
         )
 
-    # 3️⃣ Date filters
+    # Date filters
     if start_date:
         try:
             d = datetime.strptime(start_date, "%d-%m-%Y")
@@ -126,7 +126,7 @@ def search_my_logs(
         except ValueError:
             raise HTTPException(400, "end_date must be DD-MM-YYYY")
 
-    # 4️⃣ Other filters
+    # Other filters
     if category_id:
         query = query.filter(LogEntry.category_id == category_id)
 
@@ -140,10 +140,10 @@ def search_my_logs(
             LogEntry.host_name.ilike(f"%{keyword}%")
         )
 
-    # 5️⃣ Total count
+    # Total count
     total = query.count()
 
-    # 6️⃣ Pagination
+    # Pagination
     offset = (page - 1) * page_size
     logs = (
         query

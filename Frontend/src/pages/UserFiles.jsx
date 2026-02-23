@@ -4,7 +4,7 @@ import FileUpload from "./FileUpload";
 import FileTable from "../components/FileTable";
 
 export default function UserFiles() {
-  const [mode, setMode] = useState("my"); // my | team
+  const [mode, setMode] = useState("my"); 
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
 

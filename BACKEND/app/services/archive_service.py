@@ -11,7 +11,7 @@ ARCHIVE_AFTER_DAYS = 90
 def archive_old_files(*, db: Session, user):
     cutoff_date = datetime.now(timezone.utc) - timedelta(days=ARCHIVE_AFTER_DAYS)
 
-    # ✅ STEP 1: find files older than 90 days (UPLOAD BASED)
+    #  STEP 1: find files older than 90 days (UPLOAD BASED)
     old_files = (
         db.query(RawFile)
         .filter(RawFile.uploaded_at < cutoff_date)
@@ -24,35 +24,35 @@ def archive_old_files(*, db: Session, user):
     for raw_file in old_files:
         file_id = raw_file.file_id
 
-        # ✅ STEP 2: count logs for this file
+        #  STEP 2: count logs for this file
         total_logs = (
             db.query(LogEntry)
             .filter(LogEntry.file_id == file_id)
             .count()
         )
 
-        # ✅ STEP 3: archive metadata
+        #  STEP 3: archive metadata
         db.add(Archive(
             file_id=file_id,
             archived_on=datetime.now(timezone.utc),
             total_records=total_logs
         ))
 
-        # ✅ STEP 4: delete logs
+        #  STEP 4: delete logs
         db.query(LogEntry).filter(
             LogEntry.file_id == file_id
         ).delete(synchronize_session=False)
 
-        # ✅ STEP 5: move file in storage
+        # STEP 5: move file in storage
         old_path = raw_file.storage_path
         new_path = f"archive/{old_path}"
 
         move_storage_file(old_path, new_path)
 
-        # ✅ STEP 6: update file record
+        #  STEP 6: update file record
         raw_file.storage_path = new_path
 
-        # ✅ STEP 7: audit trail
+        # STEP 7: audit trail
         db.add(AuditTrail(
             user_id=user.user_id,
             action_type="ARCHIVE_FILE",

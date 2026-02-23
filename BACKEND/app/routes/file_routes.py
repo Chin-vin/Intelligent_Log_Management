@@ -194,61 +194,6 @@ def archive_old_files(db: Session):
 
     db.commit()
 
-def purge_soft_deleted_files(db: Session):
-    cutoff = datetime.now(timezone.utc) - timedelta(days=90)
-
-    soft_deleted_id = get_status_id_by_code(db, "SOFT_DELETED")
-    permanently_deleted_id = get_status_id_by_code(db, "PERMANENTLY_DELETED")
-
-    files = (
-        db.query(RawFile)
-        .filter(
-            RawFile.status_id == soft_deleted_id,
-            RawFile.deleted_at.isnot(None),
-            RawFile.deleted_at < cutoff
-        )
-        .all()
-    )
-
-    for file in files:
-        try:
-            # 1️⃣ DELETE related log entries
-            deleted_logs = (
-                db.query(LogEntry)
-                .filter(LogEntry.file_id == file.file_id)
-                .delete(synchronize_session=False)
-            )
-
-            # 2️⃣ DELETE file from storage (Supabase)
-            if file.storage_path:
-                delete_storage_file(file.storage_path)
-
-            # 3️⃣ MARK file permanently deleted (keep DB row for audit)
-            file.status_id = permanently_deleted_id
-            file.is_deleted = True
-            file.deleted_at = None
-            file.storage_path = None
-
-            # 4️⃣ AUDIT trail
-            db.add(AuditTrail(
-                user_id=None,  # system job
-                action_type="PERMANENT_DELETE_FILE",
-                entity_type="RAW_FILE",
-                entity_id=file.file_id
-            ))
-
-            print(
-                f"🗑️ Permanently deleted file_id={file.file_id}, "
-                f"logs_deleted={deleted_logs}"
-            )
-
-        except Exception as e:
-            print(
-                f"[PURGE ERROR] file_id={file.file_id} error={e}"
-            )
-
-    db.commit()
-
 
 
 

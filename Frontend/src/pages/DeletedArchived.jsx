@@ -7,7 +7,6 @@ export default function DeletedArchivedFiles() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // ✅ Fetch directly from dedicated backend route
   const fetchFiles = async () => {
     try {
       const res = await api.get("/files/deleted-archived");
@@ -23,7 +22,6 @@ export default function DeletedArchivedFiles() {
     fetchFiles();
   }, []);
 
-  // ✅ Restore file
   const handleRestore = async (fileId) => {
     try {
       await api.patch(`/files/${fileId}/restore`);
@@ -37,7 +35,6 @@ export default function DeletedArchivedFiles() {
     }
   };
 
-  // ✅ Filter logic (search + dropdown)
   const filteredFiles = files.filter((file) => {
     const matchStatus =
       statusFilter === "ALL" || file.status === statusFilter;

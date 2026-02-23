@@ -74,7 +74,7 @@ def classify_category(message: str, service: str | None = None) -> int:
 
     if any(k in text for k in ["auth", "login", "token", "unauthorized"]):
         return 2  # SECURITY
-    if any(k in text for k in ["cpu", "disk", "memory", "node", "container"]):
+    if any(k in text for k in ["cpu", "disk", "memory", "node", "container","infra"]):
         return 3  # INFRASTRUCTURE
     if any(k in text for k in ["audit", "policy", "permission", "role"]):
         return 4  # AUDIT
